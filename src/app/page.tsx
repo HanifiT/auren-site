@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
+import Link from "next/link";
+
 import { SignIn, SignOut } from "@/components/auth-buttons";
 
 /**
@@ -68,7 +70,15 @@ export default async function Home() {
                   </span>
                 )}
               </p>
-              <SignOut />
+              <div className="flex gap-3">
+                <Link
+                  href="/me"
+                  className="rounded-sm border border-[#f0b429]/60 px-7 py-3 text-sm uppercase tracking-[0.25em] text-[#f0b429] transition-colors hover:bg-[#f0b429] hover:text-[#0b0f0c]"
+                >
+                  Your record
+                </Link>
+                <SignOut />
+              </div>
             </>
           ) : (
             <>
@@ -82,6 +92,10 @@ export default async function Home() {
       </div>
 
       <footer className="relative pb-8 text-center text-xs text-[#e8e2d4]/30">
+        <Link href="/roster" className="hover:text-[#f0b429]">
+          the census
+        </Link>
+        <span className="mx-3">·</span>
         auren-rp.xyz
       </footer>
     </main>
