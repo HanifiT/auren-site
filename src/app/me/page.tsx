@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import { charactersFor, isStaff, ticketsFor } from "@/lib/queries";
+import { balanceOf, getSheet } from "@/lib/sheet";
+import { STATS, formatPence } from "@/lib/stats";
 import { SignOut } from "@/components/auth-buttons";
 
 export const dynamic = "force-dynamic";
@@ -41,11 +43,15 @@ export default async function Me() {
   let tickets: Awaited<ReturnType<typeof ticketsFor>> = [];
   let unavailable = false;
   let staff = false;
+  let sheet: Awaited<ReturnType<typeof getSheet>> = null;
+  let purse = 0;
   try {
-    [characters, tickets, staff] = await Promise.all([
+    [characters, tickets, staff, sheet, purse] = await Promise.all([
       charactersFor(session.discordId),
       ticketsFor(session.discordId),
       isStaff(session.discordId),
+      getSheet(session.discordId),
+      balanceOf(session.discordId),
     ]);
   } catch {
     unavailable = true;
@@ -91,6 +97,48 @@ export default async function Me() {
             </ul>
           )}
         </section>
+
+        {sheet && (
+          <section className="mt-12">
+            <h2 className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40">
+              The record
+            </h2>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {STATS.map((stat) => {
+                const score = sheet![stat.key];
+                const mod = Math.floor((score - 10) / 2);
+                return (
+                  <div
+                    key={stat.key}
+                    className="rounded-sm border border-white/10 p-4 text-center"
+                  >
+                    <div className="font-serif text-3xl text-[#f0b429]">
+                      {score}
+                    </div>
+                    <div className="mt-1 text-xs text-[#e8e2d4]/40">
+                      {mod >= 0 ? `+${mod}` : mod}
+                    </div>
+                    <div className="mt-2 font-serif text-sm">{stat.name}</div>
+                    <div className="text-[10px] text-[#e8e2d4]/35">
+                      {stat.gloss}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 flex items-baseline justify-between rounded-sm border border-[#f0b429]/25 px-4 py-3">
+              <span className="text-xs uppercase tracking-[0.2em] text-[#e8e2d4]/50">
+                Purse
+              </span>
+              <span className="font-serif text-2xl text-[#f0b429]">
+                {formatPence(purse)}
+              </span>
+            </div>
+            <p className="mt-2 text-[11px] text-[#e8e2d4]/30">
+              Crown scrip. Good on the island.
+            </p>
+          </section>
+        )}
 
         <section className="mt-12">
           <h2 className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40">

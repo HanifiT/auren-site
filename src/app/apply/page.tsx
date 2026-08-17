@@ -3,8 +3,10 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { hasPending } from "@/lib/queries";
+import { getRoll } from "@/lib/sheet";
 import { SignIn } from "@/components/auth-buttons";
 import { ApplyForm } from "./form";
+import { RollButton } from "./roll";
 
 export const dynamic = "force-dynamic";
 
@@ -71,13 +73,15 @@ export default async function Apply() {
     );
   }
 
+  const roll = await getRoll(session.discordId);
+
   return (
     <Shell>
       <p className="mt-6 max-w-prose text-[#e8e2d4]/70">
         Every soul on the island is entered in the census. Present a character
         below; once the record is read, the rest of the island opens to you.
       </p>
-      <ApplyForm />
+      {roll ? <ApplyForm values={roll.values} /> : <RollButton />}
     </Shell>
   );
 }
