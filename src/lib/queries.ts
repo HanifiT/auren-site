@@ -130,3 +130,46 @@ export async function recentTickets(limit = 25): Promise<
   );
   return rows;
 }
+
+/**
+ * Create a pending application from the site.
+ *
+ * The site's Postgres role has INSERT on this table and deliberately not
+ * UPDATE (db/004_onboarding.sql): it can put a row in the review queue and
+ * can never approve one. Every decision still happens in Discord, with an
+ * author attached.
+ *
+ * `application_one_pending_per_user` is a partial unique index, so a second
+ * submission raises rather than queueing twice. That is the cap on what a
+ * compromised site could do here — one row of rubbish per account.
+ */
+export async function submitApplication(params: {
+  discordId: string;
+  characterName: string;
+  answers: Record<string, string>;
+}): Promise<{ ok: true; id: string } | { ok: false; reason: string }> {
+  try {
+    const { rows } = await pool.query<{ id: string }>(
+      `INSERT INTO application (applicant_id, character_name, answers, source)
+       VALUES ($1, $2, $3::jsonb, 'site')
+       RETURNING id::text`,
+      [params.discordId, params.characterName, JSON.stringify(params.answers)],
+    );
+    return { ok: true, id: rows[0].id };
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "23505") {
+      return { ok: false, reason: "You already have a character with the censors." };
+    }
+    console.error("submitApplication failed", err);
+    return { ok: false, reason: "The records are unreachable just now." };
+  }
+}
+
+export async function hasPending(discordId: string): Promise<boolean> {
+  const { rows } = await pool.query(
+    "SELECT 1 FROM application WHERE applicant_id = $1 AND status = 'pending'",
+    [discordId],
+  );
+  return rows.length > 0;
+}
