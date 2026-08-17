@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { charactersFor, ticketsFor } from "@/lib/queries";
+import { charactersFor, isStaff, ticketsFor } from "@/lib/queries";
 import { SignOut } from "@/components/auth-buttons";
 
 export const dynamic = "force-dynamic";
@@ -40,10 +40,12 @@ export default async function Me() {
   let characters: Awaited<ReturnType<typeof charactersFor>> = [];
   let tickets: Awaited<ReturnType<typeof ticketsFor>> = [];
   let unavailable = false;
+  let staff = false;
   try {
-    [characters, tickets] = await Promise.all([
+    [characters, tickets, staff] = await Promise.all([
       charactersFor(session.discordId),
       ticketsFor(session.discordId),
+      isStaff(session.discordId),
     ]);
   } catch {
     unavailable = true;
@@ -113,8 +115,16 @@ export default async function Me() {
           )}
         </section>
 
-        <div className="mt-16">
+        <div className="mt-16 flex items-center gap-3">
           <SignOut />
+          {staff && (
+            <Link
+              href="/admin"
+              className="rounded-sm border border-[#f0b429]/60 px-7 py-3 text-sm uppercase tracking-[0.25em] text-[#f0b429] transition-colors hover:bg-[#f0b429] hover:text-[#0b0f0c]"
+            >
+              Praesidium
+            </Link>
+          )}
         </div>
       </div>
     </main>
