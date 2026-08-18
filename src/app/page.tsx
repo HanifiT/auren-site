@@ -92,6 +92,10 @@ export default async function Home() {
       </div>
 
       <footer className="relative pb-8 text-center text-xs text-[#e8e2d4]/30">
+        <Link href="/board" className="hover:text-[#f0b429]">
+          the board
+        </Link>
+        <span className="mx-3">·</span>
         <Link href="/roster" className="hover:text-[#f0b429]">
           the census
         </Link>
