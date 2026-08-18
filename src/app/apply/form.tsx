@@ -1,16 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
-import { STATS, type StatKey } from "@/lib/stats";
-import { apply, type ApplyState } from "./actions";
+import { BEARING, TOWNS, TRADES } from "@/lib/options";
+import { create, type ApplyState } from "./actions";
 
 const field =
   "w-full rounded-sm border border-white/15 bg-white/[0.03] px-4 py-3 text-[#e8e2d4] " +
   "outline-none transition-colors placeholder:text-[#e8e2d4]/25 focus:border-[#f0b429]/60";
+const label = "mb-2 block text-xs uppercase tracking-[0.2em] text-[#e8e2d4]/50";
 
-function Submit() {
+function Submit({ mode }: { mode: string }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -18,123 +19,144 @@ function Submit() {
       disabled={pending}
       className="rounded-sm border border-[#f0b429]/60 px-8 py-3 text-sm uppercase tracking-[0.25em] text-[#f0b429] transition-colors hover:bg-[#f0b429] hover:text-[#0b0f0c] disabled:opacity-40"
     >
-      {pending ? "Entering…" : "Present"}
+      {pending ? "Entering…" : mode === "found" ? "Found the House" : "Petition"}
     </button>
   );
 }
 
-export function ApplyForm({ values }: { values: number[] }) {
-  const [state, action] = useFormState<ApplyState, FormData>(apply, {});
-  const [assigned, setAssigned] = useState<Partial<Record<StatKey, number>>>({});
-
-  // Which rolled numbers are still unspent. Indexed rather than by value,
-  // because a roll can legitimately contain the same number twice.
-  const remaining = useMemo(() => {
-    const pool = [...values];
-    for (const v of Object.values(assigned)) {
-      const i = pool.indexOf(v as number);
-      if (i >= 0) pool.splice(i, 1);
-    }
-    return pool;
-  }, [values, assigned]);
+export function CreateForm({ houses }: { houses: { id: string; name: string }[] }) {
+  const [state, action] = useFormState<ApplyState, FormData>(create, {});
+  const [mode, setMode] = useState<"found" | "join">("found");
 
   if (state.ok) {
     return (
       <div className="mt-10 rounded-sm border border-[#4c9a2a]/40 p-6">
         <p className="font-serif text-xl text-[#a3be5c]">Entered.</p>
         <p className="mt-2 text-sm text-[#e8e2d4]/65">
-          Your character is with the censors. You will be told when the record
-          has been read.
+          {mode === "found"
+            ? "Your House stands. Draw its history below."
+            : "Your petition is with the House. They will answer it."}
         </p>
       </div>
     );
   }
 
   return (
-    <form action={action} className="mt-10 space-y-8">
+    <form action={action} className="mt-10 space-y-10">
+      <input type="hidden" name="mode" value={mode} />
+
       <fieldset>
-        <legend className="mb-4 text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/50">
-          Assign your numbers
-        </legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {STATS.map((stat) => (
-            <label
-              key={stat.key}
-              className="flex items-center justify-between gap-3 rounded-sm border border-white/10 px-4 py-3"
+        <legend className={label}>The name</legend>
+        <div className="mb-4 flex gap-2">
+          {(["found", "join"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`rounded-sm border px-4 py-2 text-xs uppercase tracking-[0.2em] transition-colors ${
+                mode === m
+                  ? "border-[#f0b429]/60 text-[#f0b429]"
+                  : "border-white/15 text-[#e8e2d4]/45 hover:text-[#e8e2d4]/70"
+              }`}
             >
-              <span>
-                <span className="font-serif text-lg">{stat.name}</span>
-                <span className="ml-2 text-xs text-[#e8e2d4]/40">
-                  {stat.gloss}
-                </span>
-              </span>
-              <select
-                name={`stat_${stat.key}`}
-                required
-                value={assigned[stat.key] ?? ""}
-                onChange={(e) =>
-                  setAssigned((a) => ({
-                    ...a,
-                    [stat.key]: Number(e.target.value),
-                  }))
-                }
-                className="rounded-sm border border-white/15 bg-[#0b0f0c] px-3 py-1.5 text-lg text-[#f0b429] outline-none"
-              >
-                <option value="">—</option>
-                {Array.from(new Set(values))
-                  .sort((a, b) => b - a)
-                  .filter(
-                    (v) =>
-                      remaining.includes(v) || assigned[stat.key] === v,
-                  )
-                  .map((v) => (
-                    <option key={v} value={v}>
-                      {v}
-                    </option>
-                  ))}
-              </select>
-            </label>
+              {m === "found" ? "Found a House" : "Join one"}
+            </button>
           ))}
         </div>
-        <p className="mt-3 text-xs text-[#e8e2d4]/40">
-          Rolled: {values.slice().sort((a, b) => b - a).join(" · ")}
-          {remaining.length > 0 && (
-            <span className="ml-2 text-[#f0b429]/70">
-              {remaining.length} left to place
+
+        {mode === "found" ? (
+          <div className="space-y-4">
+            <label className="block">
+              <span className={label}>House name</span>
+              <input name="house_name" maxLength={60} className={field} />
+            </label>
+            <label className="block">
+              <span className={label}>Motto</span>
+              <input name="motto" maxLength={120} className={field} />
+            </label>
+            <label className="block">
+              <span className={label}>Crest</span>
+              <input type="file" name="crest" accept="image/*"
+                     className="text-sm text-[#e8e2d4]/60 file:mr-3 file:rounded-sm file:border file:border-white/15 file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:uppercase file:tracking-wider file:text-[#e8e2d4]/70" />
+            </label>
+            <label className="block">
+              <span className={label}>Where the line is from</span>
+              <select name="origin_town" required className={field} defaultValue="">
+                <option value="" disabled>Choose a town</option>
+                {TOWNS.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    {t.name} — {t.standing === "neither" ? "neither north nor south" : t.standing}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-2 block text-xs text-[#e8e2d4]/35">
+                Not where they live — everyone lives on the island now. This is
+                where the name carries.
+              </span>
+            </label>
+          </div>
+        ) : (
+          <label className="block">
+            <span className={label}>Which House</span>
+            <select name="cynn_id" required className={field} defaultValue="">
+              <option value="" disabled>Choose a House</option>
+              {houses.map((h) => (
+                <option key={h.id} value={h.id}>{h.name}</option>
+              ))}
+            </select>
+            <span className="mt-2 block text-xs text-[#e8e2d4]/35">
+              A petition, not an entry. The House decides.
             </span>
-          )}
-        </p>
+          </label>
+        )}
       </fieldset>
 
-      <div className="space-y-6">
-        <Field name="name" label="Character name" maxLength={100} required />
-        <Field name="concept" label="In a sentence, who are they?" maxLength={300} rows={2} required />
-        <Field name="origin" label="Where are they from?" maxLength={700} rows={3} />
-        <Field name="history" label="History" maxLength={1500} rows={6} required />
-        <Field name="hook" label="What do they want on the island?" maxLength={700} rows={3} />
-      </div>
+      <fieldset className="space-y-4">
+        <legend className={label}>The person</legend>
+        <label className="block">
+          <span className={label}>Name</span>
+          <input name="name" maxLength={100} required className={field} />
+        </label>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className={label}>Age</span>
+            <input name="age" type="number" min={0} max={200} className={field} />
+          </label>
+          <label className="block">
+            <span className={label}>Bearing</span>
+            <select name="bearing" className={field} defaultValue="">
+              <option value="">—</option>
+              {BEARING.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className={label}>Trade</span>
+            <select name="trade" className={field} defaultValue="">
+              <option value="">—</option>
+              {TRADES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+        </div>
+        <label className="block">
+          <span className={label}>Portrait</span>
+          <input type="file" name="portrait" accept="image/*"
+                 className="text-sm text-[#e8e2d4]/60 file:mr-3 file:rounded-sm file:border file:border-white/15 file:bg-transparent file:px-3 file:py-1.5 file:text-xs file:uppercase file:tracking-wider file:text-[#e8e2d4]/70" />
+          <span className="mt-2 block text-xs text-[#e8e2d4]/35">
+            Re-encoded on upload. Nothing but the picture is kept.
+          </span>
+        </label>
+        <label className="block">
+          <span className={label}>In a sentence, who are they?</span>
+          <textarea name="short" rows={2} maxLength={300} required className={field} />
+        </label>
+        <label className="block">
+          <span className={label}>Bio</span>
+          <textarea name="bio" rows={10} maxLength={4000} className={field} />
+        </label>
+      </fieldset>
 
       {state.error && <p className="text-sm text-[#e2725b]">{state.error}</p>}
-      <Submit />
+      <Submit mode={mode} />
     </form>
-  );
-}
-
-function Field({
-  name, label, maxLength, rows, required = false,
-}: {
-  name: string; label: string; maxLength: number; rows?: number; required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-[#e8e2d4]/50">
-        {label}
-      </span>
-      {rows ? (
-        <textarea name={name} rows={rows} maxLength={maxLength} required={required} className={field} />
-      ) : (
-        <input name={name} maxLength={maxLength} required={required} className={field} />
-      )}
-    </label>
   );
 }
