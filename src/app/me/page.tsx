@@ -161,6 +161,10 @@ export default async function Me() {
               <p className="mt-1 text-[11px] text-[#e8e2d4]/30">
                 Held by the House. Crown scrip — good on the island.
               </p>
+              <Link href="/tree"
+                    className="mt-4 inline-block text-xs uppercase tracking-[0.2em] text-[#f0b429] hover:underline">
+                The tree →
+              </Link>
             </div>
 
             {deeds.length > 0 && (
