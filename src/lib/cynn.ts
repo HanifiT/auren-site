@@ -35,6 +35,7 @@ export type Character = {
   trade: string | null;
   membership: "pending" | "admitted" | "disowned";
   status: "living" | "dead";
+  at_town: string | null;
 };
 
 export async function cynnFor(discordId: string): Promise<Cynn | null> {
@@ -52,7 +53,7 @@ export async function cynnFor(discordId: string): Promise<Cynn | null> {
 export async function characterFor(discordId: string): Promise<Character | null> {
   const { rows } = await pool.query<Character>(
     `SELECT id::text, cynn_id::text, name, age, portrait_path, short, bio,
-            bearing, trade, membership, status
+            bearing, trade, membership, status, at_town
        FROM character WHERE owner_id = $1 AND status = 'living' LIMIT 1`,
     [discordId],
   );

@@ -96,6 +96,10 @@ export default async function Home() {
           the board
         </Link>
         <span className="mx-3">·</span>
+        <Link href="/aedre" className="hover:text-[#f0b429]">
+          the ǣdre
+        </Link>
+        <span className="mx-3">·</span>
         <Link href="/roster" className="hover:text-[#f0b429]">
           the census
         </Link>
