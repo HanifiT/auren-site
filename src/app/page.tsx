@@ -1,111 +1,144 @@
+import Image from "next/image";
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import Link from "next/link";
-
 import { SignIn, SignOut } from "@/components/auth-buttons";
+import { Tear } from "@/components/leaf";
+import fell from "../../public/fell.jpg";
 
 /**
  * The landing page.
  *
  * Spoiler discipline applies here exactly as it does in the server: nothing on
- * this page explains a name. The sun-to-green gradient and the Latin are
+ * this page explains a name. `Spes ultima dea` and the sun-to-green arc are
  * foreshadowing, and they only work if they sit inert.
+ *
+ * The photograph is doing the work the old gradient did — the island is a
+ * place before it is a premise. It is deliberately left bright; the scrim in
+ * `.hero::after` darkens only the disc the type sits on.
  */
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#0b0f0c] text-[#e8e2d4]">
-      {/* A day dying: the colour-role arc, as a background. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
-        style={{
-          background:
-            "radial-gradient(120% 80% at 50% -10%, #e2725b 0%, #e08a3c 18%, #f0b429 32%, #ffd666 42%, #a3be5c 58%, #4c9a2a 72%, #388e5c 84%, #6e8b74 100%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(11,15,12,0.25) 0%, rgba(11,15,12,0.85) 55%, #0b0f0c 100%)",
-        }}
-      />
+    <>
+      <section className="hero">
+        <div className="hero-plate">
+          <Image
+            src={fell}
+            alt="Fells and a high tarn above Grasmere, in the English Lake District"
+            fill
+            priority
+            placeholder="blur"
+            sizes="100vw"
+          />
+        </div>
 
-      <div className="relative mx-auto flex min-h-dvh max-w-3xl flex-col items-center justify-center px-6 py-24 text-center">
-        <p className="mb-6 text-xs uppercase tracking-[0.45em] text-[#e8e2d4]/60">
-          Spes ultima dea
-        </p>
+        <div className="on-plate max-w-[34rem] px-[6vw] py-[8vh] text-center">
+          <p className="eyebrow mb-3">Spes Ultima Dea</p>
+          <h1 className="wordmark my-1">Auren</h1>
+          <div className="hero-rule mx-auto my-6" />
 
-        <h1 className="font-serif text-6xl leading-none tracking-tight sm:text-8xl">
-          Auren
-        </h1>
+          <p className="mx-auto mb-10 max-w-[26rem] text-[1.06rem] leading-relaxed">
+            An island that grows without season, under a sun that has not set in
+            living memory. The Crown keeps the records. The folk keep the ground.
+          </p>
 
-        <div
-          aria-hidden
-          className="my-8 h-px w-40 bg-gradient-to-r from-transparent via-[#f0b429]/70 to-transparent"
-        />
-
-        <p className="max-w-xl text-balance text-lg leading-relaxed text-[#e8e2d4]/80">
-          An island that grows without season, under a sun that has not set in
-          living memory. The Crown keeps the records. The folk keep the ground.
-        </p>
-
-        <div className="mt-12 flex flex-col items-center gap-4">
           {session?.discordId ? (
             <>
-              <p className="text-sm text-[#e8e2d4]/70">
+              <p className="mb-4 text-[0.86rem] text-[#d9d0b4]">
                 Signed in as{" "}
-                <span className="text-[#f0b429]">{session.user?.name}</span>
-                {session.inGuild ? (
-                  <span className="ml-2 rounded-full border border-[#4c9a2a]/50 px-2 py-0.5 text-xs text-[#a3be5c]">
-                    of the island
-                  </span>
-                ) : (
-                  <span className="ml-2 rounded-full border border-[#6e8b74]/50 px-2 py-0.5 text-xs text-[#6e8b74]">
-                    foreigner
-                  </span>
-                )}
+                <b className="font-semibold text-[#d9a94a]">{session.user?.name}</b>
+                <span className="badge ml-2">
+                  {session.inGuild ? "of the island" : "foreigner"}
+                </span>
               </p>
-              <div className="flex gap-3">
-                <Link
-                  href="/me"
-                  className="rounded-sm border border-[#f0b429]/60 px-7 py-3 text-sm uppercase tracking-[0.25em] text-[#f0b429] transition-colors hover:bg-[#f0b429] hover:text-[#0b0f0c]"
-                >
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link href="/me" className="act act--primary">
                   Your record
                 </Link>
                 <SignOut />
               </div>
             </>
           ) : (
-            <>
+            <div className="flex flex-col items-center gap-4">
               <SignIn />
-              <p className="text-xs text-[#e8e2d4]/45">
+              <p className="text-xs text-[#d9d0b4]">
                 Sign in with Discord to be counted among the citizenry.
               </p>
-            </>
+            </div>
           )}
         </div>
-      </div>
 
-      <footer className="relative pb-8 text-center text-xs text-[#e8e2d4]/30">
-        <Link href="/board" className="hover:text-[#f0b429]">
-          the board
-        </Link>
-        <span className="mx-3">·</span>
-        <Link href="/aedre" className="hover:text-[#f0b429]">
-          the ǣdre
-        </Link>
-        <span className="mx-3">·</span>
-        <Link href="/roster" className="hover:text-[#f0b429]">
-          the census
-        </Link>
-        <span className="mx-3">·</span>
-        auren-rp.xyz
+        <div className="scroll-cue absolute bottom-[clamp(52px,6vw,90px)] left-1/2 z-[2] -translate-x-1/2">
+          Read on
+        </div>
+        <Tear />
+      </section>
+
+      {/* What sits under the tear. */}
+      <main className="leaf px-[6vw] py-[clamp(3rem,7vw,6rem)] pb-[clamp(4rem,8vw,7rem)]">
+        <div className="relative z-[1] mx-auto max-w-[74rem]">
+          <p className="eyebrow mb-3">Nineteen years of it</p>
+          <h2 className="display text-[clamp(2.6rem,6vw,4.4rem)]">
+            The ground remembers
+            <br />
+            what the roll does not.
+          </h2>
+          <p className="mt-6 max-w-[var(--measure)] text-[1.05rem] text-ink-soft">
+            Three charters answer the failing harvest, and none of them agree.
+            Take a name, take a side, and the island will hold you to it.
+          </p>
+
+          <div className="hair my-9" />
+
+          <div className="flex flex-wrap gap-4">
+            <Link href="/apply" className="act act--ink">
+              Your record →
+            </Link>
+            <Link href="/roster" className="act act--ink">
+              The census
+            </Link>
+          </div>
+        </div>
+      </main>
+
+      <footer className="leaf border-t border-vellum-deep px-[6vw] py-8 text-center text-xs text-ink-soft">
+        <div className="relative z-[1]">
+          <Link href="/board" className="hover:text-rubric">
+            the board
+          </Link>
+          <span className="mx-3">·</span>
+          <Link href="/aedre" className="hover:text-rubric">
+            the ǣdre
+          </Link>
+          <span className="mx-3">·</span>
+          <Link href="/roster" className="hover:text-rubric">
+            the census
+          </Link>
+          <span className="mx-3">·</span>
+          auren-rp.xyz
+          <p className="mt-4 text-[0.68rem] text-ink-faint">
+            Fells above Grasmere ·{" "}
+            <a
+              className="underline decoration-vellum-deep underline-offset-2 hover:text-rubric"
+              href="https://commons.wikimedia.org/wiki/File:Rugged_Ridges_and_Remote_Tarns_%E2%80%93_Lake_District_from_Grasmere_Heights.jpg"
+              rel="noreferrer"
+            >
+              TXGemGem
+            </a>
+            ,{" "}
+            <a
+              className="underline decoration-vellum-deep underline-offset-2 hover:text-rubric"
+              href="https://creativecommons.org/licenses/by-sa/4.0"
+              rel="license noreferrer"
+            >
+              CC BY-SA 4.0
+            </a>
+          </p>
+        </div>
       </footer>
-    </main>
+    </>
   );
 }

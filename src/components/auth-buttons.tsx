@@ -2,25 +2,28 @@
 
 import { signIn, signOut } from "next-auth/react";
 
-const base =
-  "rounded-sm border px-7 py-3 text-sm uppercase tracking-[0.25em] transition-colors";
+/**
+ * `plate` is the on-photograph treatment; `ink` is the same button on
+ * parchment, where a pale outline would vanish.
+ */
+type Variant = "plate" | "ink";
 
-export function SignIn() {
+export function SignIn({ variant = "plate" }: { variant?: Variant }) {
   return (
     <button
       onClick={() => signIn("discord")}
-      className={`${base} border-[#f0b429]/60 text-[#f0b429] hover:bg-[#f0b429] hover:text-[#0b0f0c]`}
+      className={variant === "ink" ? "act act--rubric" : "act act--primary"}
     >
       Enter
     </button>
   );
 }
 
-export function SignOut() {
+export function SignOut({ variant = "plate" }: { variant?: Variant }) {
   return (
     <button
       onClick={() => signOut()}
-      className={`${base} border-[#6e8b74]/50 text-[#6e8b74] hover:bg-[#6e8b74]/10`}
+      className={variant === "ink" ? "act act--ink" : "act"}
     >
       Depart
     </button>

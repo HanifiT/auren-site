@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
-import { Cinzel, EB_Garamond } from "next/font/google";
+import { Grenze_Gotisch, EB_Garamond } from "next/font/google";
 
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
-const display = Cinzel({ subsets: ["latin"], variable: "--font-display" });
+/**
+ * Grenze Gotisch is a blackletter-derived display face that still sets legibly
+ * at body sizes — it carries the register-of-souls voice without tipping into
+ * the unreadable textura a real charter would have used.
+ */
+const display = Grenze_Gotisch({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-display",
+});
 const body = EB_Garamond({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {

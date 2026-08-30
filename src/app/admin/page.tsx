@@ -47,17 +47,17 @@ export default async function Admin() {
   const pending = apps.filter((a) => a.status === "pending");
 
   return (
-    <main className="min-h-dvh bg-[#0b0f0c] px-6 py-14 text-[#e8e2d4]">
-      <div className="mx-auto max-w-5xl">
+    <main className="leaf min-h-svh px-6 py-14">
+      <div className="relative z-[1] mx-auto max-w-5xl">
         <Link
           href="/"
-          className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40 hover:text-[#f0b429]"
+          className="text-xs uppercase tracking-[0.3em] text-ink-faint hover:text-rubric"
         >
           ← Auren
         </Link>
 
         <h1 className="mt-6 font-serif text-4xl">The Praesidium</h1>
-        <p className="mt-1 text-sm text-[#e8e2d4]/50">Staff console</p>
+        <p className="mt-1 text-sm text-ink-faint">Staff console</p>
 
         <section className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Stat label="Accounts" value={stats.accounts} />
@@ -74,16 +74,16 @@ export default async function Admin() {
               {pending.map((a) => (
                 <li
                   key={a.id}
-                  className="rounded-sm border border-[#f0b429]/30 bg-[#f0b429]/[0.04] p-4"
+                  className="border border-vellum-deep bg-[rgba(148,48,30,.05)] p-4"
                 >
                   <div className="flex items-baseline justify-between gap-4">
                     <span className="font-serif text-lg">{a.character_name}</span>
-                    <span className="text-xs text-[#e8e2d4]/40">#{a.id}</span>
+                    <span className="text-xs text-ink-faint">#{a.id}</span>
                   </div>
-                  <p className="mt-2 text-sm text-[#e8e2d4]/65">
+                  <p className="mt-2 text-sm text-ink-soft">
                     {a.answers?.concept}
                   </p>
-                  <p className="mt-2 text-xs text-[#e8e2d4]/35">
+                  <p className="mt-2 text-xs text-ink-faint">
                     decide in Discord — approve and deny live on the review
                     message, so every decision has an author
                   </p>
@@ -99,7 +99,7 @@ export default async function Admin() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[34rem] text-sm">
-                <thead className="text-left text-xs uppercase tracking-wider text-[#e8e2d4]/40">
+                <thead className="text-left text-xs uppercase tracking-wider text-ink-faint">
                   <tr>
                     <th className="pb-2 font-normal">Name</th>
                     <th className="pb-2 font-normal">Player</th>
@@ -109,15 +109,15 @@ export default async function Admin() {
                 </thead>
                 <tbody className="align-top">
                   {apps.map((a) => (
-                    <tr key={a.id} className="border-t border-white/[0.06]">
+                    <tr key={a.id} className="border-t border-vellum-deep">
                       <td className="py-2.5 pr-4 font-serif">{a.character_name}</td>
-                      <td className="py-2.5 pr-4 font-mono text-xs text-[#e8e2d4]/50">
+                      <td className="py-2.5 pr-4 font-mono text-xs text-ink-faint">
                         {a.applicant_id}
                       </td>
                       <td className="py-2.5 pr-4">
                         <Tag status={a.status} />
                       </td>
-                      <td className="py-2.5 text-xs text-[#e8e2d4]/50">
+                      <td className="py-2.5 text-xs text-ink-faint">
                         {new Date(a.submitted_at).toISOString().slice(0, 10)}
                       </td>
                     </tr>
@@ -136,9 +136,9 @@ export default async function Admin() {
               {tickets.map((t) => (
                 <li
                   key={t.id}
-                  className="flex items-center justify-between gap-4 rounded-sm border border-white/10 px-4 py-2.5"
+                  className="flex items-center justify-between gap-4 border border-vellum-deep px-4 py-2.5"
                 >
-                  <span className="truncate text-sm text-[#e8e2d4]/75">
+                  <span className="truncate text-sm text-ink-soft">
                     {t.topic}
                   </span>
                   <Tag status={t.status} />
@@ -149,12 +149,12 @@ export default async function Admin() {
         </Section>
 
         <Section title="Economy">
-          <div className="rounded-sm border border-dashed border-white/15 p-6">
-            <p className="text-sm text-[#e8e2d4]/60">
+          <div className="border border-dashed border-vellum-deep p-6">
+            <p className="text-sm text-ink-soft">
               Not built. There is no economy schema, and there deliberately
               isn&apos;t one yet — the shape of it has not been decided.
             </p>
-            <p className="mt-3 text-xs text-[#e8e2d4]/35">
+            <p className="mt-3 text-xs text-ink-faint">
               When it exists it belongs in the same database, written by the bot
               and read here, like everything above. This panel is a placeholder
               rather than a mock so nobody mistakes it for something that works.
@@ -177,18 +177,18 @@ function Stat({
 }) {
   return (
     <div
-      className={`rounded-sm border p-4 ${
-        accent ? "border-[#f0b429]/40" : "border-white/10"
+      className={`border p-4 ${
+        accent ? "border-vellum-deep" : "border-vellum-deep"
       }`}
     >
       <div
         className={`font-serif text-3xl ${
-          accent ? "text-[#f0b429]" : "text-[#e8e2d4]"
+          accent ? "text-rubric" : "text-ink"
         }`}
       >
         {value}
       </div>
-      <div className="mt-1 text-[11px] uppercase tracking-wider text-[#e8e2d4]/40">
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-ink-faint">
         {label}
       </div>
     </div>
@@ -204,7 +204,7 @@ function Section({
 }) {
   return (
     <section className="mt-12">
-      <h2 className="mb-4 text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40">
+      <h2 className="mb-4 text-xs uppercase tracking-[0.3em] text-ink-faint">
         {title}
       </h2>
       {children}
@@ -213,24 +213,24 @@ function Section({
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-[#e8e2d4]/50">{children}</p>;
+  return <p className="text-sm text-ink-faint">{children}</p>;
 }
 
 const STATUS_COLOUR: Record<string, string> = {
-  approved: "border-[#4c9a2a]/50 text-[#a3be5c]",
-  pending: "border-[#f0b429]/50 text-[#f0b429]",
-  denied: "border-[#6e8b74]/50 text-[#6e8b74]",
-  withdrawn: "border-[#6e8b74]/40 text-[#6e8b74]",
-  open: "border-[#f0b429]/50 text-[#f0b429]",
+  approved: "border-[#4d6b3f] text-[#4d6b3f]",
+  pending: "border-gilt text-gilt",
+  denied: "border-vellum-deep text-ink-faint",
+  withdrawn: "border-vellum-deep text-ink-faint",
+  open: "border-gilt text-gilt",
   claimed: "border-[#e08a3c]/50 text-[#e08a3c]",
-  closed: "border-[#6e8b74]/50 text-[#6e8b74]",
+  closed: "border-vellum-deep text-ink-faint",
 };
 
 function Tag({ status }: { status: string }) {
   return (
     <span
       className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-wider ${
-        STATUS_COLOUR[status] ?? "border-white/20 text-white/60"
+        STATUS_COLOUR[status] ?? "border-vellum-deep text-white/60"
       }`}
     >
       {status}
@@ -240,8 +240,8 @@ function Tag({ status }: { status: string }) {
 
 function Unavailable() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#0b0f0c] px-6 text-[#e8e2d4]">
-      <p className="max-w-sm text-center text-sm text-[#6e8b74]">
+    <main className="leaf grid min-h-svh place-items-center px-6">
+      <p className="relative z-[1] max-w-sm text-center text-sm text-ink-faint">
         The records are unreachable, so I can&apos;t confirm you are staff.
         Access is denied rather than assumed.
       </p>

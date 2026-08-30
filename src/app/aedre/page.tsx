@@ -34,32 +34,32 @@ export default async function Aedre() {
   const here = me?.at_town ?? null;
 
   return (
-    <main className="min-h-dvh bg-[#0b0f0c] px-6 py-16 text-[#e8e2d4]">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/" className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40 hover:text-[#f0b429]">
+    <main className="leaf min-h-svh px-6 py-16">
+      <div className="relative z-[1] mx-auto max-w-3xl">
+        <Link href="/" className="text-xs uppercase tracking-[0.3em] text-ink-faint hover:text-rubric">
           ← Auren
         </Link>
 
-        <p className="mt-8 text-xs uppercase tracking-[0.45em] text-[#e8e2d4]/50">
+        <p className="mt-8 text-xs uppercase tracking-[0.45em] text-ink-faint">
           Wyrdport keeps the old maps
         </p>
         <h1 className="mt-2 font-serif text-5xl">The Ǣdre</h1>
-        <div aria-hidden className="mt-6 h-px w-32 bg-gradient-to-r from-[#a3be5c]/70 to-transparent" />
+        <div aria-hidden className="mt-6 h-px w-32 bg-gradient-to-r from-rubric to-transparent" />
 
-        <p className="mt-6 max-w-prose text-[#e8e2d4]/70">
+        <p className="mt-6 max-w-prose text-ink-soft">
           Veins under the ground. They run where they run, they give what they
           have, and what is taken from one is taken from everyone.
         </p>
 
         {unavailable && (
-          <p className="mt-8 text-sm text-[#6e8b74]">
+          <p className="mt-8 text-sm text-ink-faint">
             The ground is quiet just now.
           </p>
         )}
 
         {me && (
-          <div className="mt-8 flex flex-wrap items-center gap-4 rounded-sm border border-white/10 px-4 py-3">
-            <span className="text-xs uppercase tracking-[0.2em] text-[#e8e2d4]/45">
+          <div className="mt-8 flex flex-wrap items-center gap-4 border border-vellum-deep px-4 py-3">
+            <span className="text-xs uppercase tracking-[0.2em] text-ink-faint">
               {here ? `Standing in ${here}` : "Standing nowhere in particular"}
             </span>
             <Travel towns={TOWNS} at={here} />
@@ -70,32 +70,32 @@ export default async function Aedre() {
           {all.map((l) => {
             const pct = Math.round((l.available / l.capacity) * 100);
             return (
-              <div key={l.id} className="rounded-sm border border-white/10 p-5">
+              <div key={l.id} className="border border-vellum-deep p-5">
                 <div className="flex items-baseline justify-between gap-4">
                   <h2 className="font-serif text-2xl">{l.name}</h2>
-                  <span className="text-sm text-[#e8e2d4]/50">
+                  <span className="text-sm text-ink-faint">
                     under {l.town}
                   </span>
                 </div>
 
-                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[rgba(120,94,52,.2)]">
                   <div
                     className="h-full rounded-full transition-all"
                     style={{
                       width: `${pct}%`,
                       background:
-                        pct > 60 ? "#4c9a2a" : pct > 25 ? "#f0b429" : "#e2725b",
+                        pct > 60 ? "#4d6b3f" : pct > 25 ? "#a87c2e" : "#94301e",
                     }}
                   />
                 </div>
-                <p className="mt-2 text-xs text-[#e8e2d4]/40">
+                <p className="mt-2 text-xs text-ink-faint">
                   {l.available} of {l.capacity} · recovers {l.refill_per_hour}/hour
                   {l.surfaced && " · it surfaces here"}
                 </p>
 
                 {me && here === l.town && <Draw available={l.available} />}
                 {me && here !== l.town && (
-                  <p className="mt-3 text-xs text-[#e8e2d4]/30">
+                  <p className="mt-3 text-xs text-ink-faint">
                     You are not standing here.
                   </p>
                 )}
@@ -106,16 +106,16 @@ export default async function Aedre() {
 
         {draws.length > 0 && (
           <section className="mt-12">
-            <h2 className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40">
+            <h2 className="text-xs uppercase tracking-[0.3em] text-ink-faint">
               Lately
             </h2>
             <ul className="mt-4 space-y-1.5">
               {draws.map((d, i) => (
                 <li key={i} className="flex items-baseline justify-between gap-4 text-sm">
-                  <span className="text-[#e8e2d4]/70">
+                  <span className="text-ink-soft">
                     {d.who} drew from {d.line}
                   </span>
-                  <span className="text-[#a3be5c]">{d.amount}</span>
+                  <span className="text-[#4d6b3f]">{d.amount}</span>
                 </li>
               ))}
             </ul>

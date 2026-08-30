@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { approvedCharacters } from "@/lib/queries";
+import { Back, Leaf } from "@/components/leaf";
 
 export const dynamic = "force-dynamic";
 
@@ -20,39 +19,36 @@ export default async function Roster() {
   }
 
   return (
-    <main className="min-h-dvh bg-[#0b0f0c] px-6 py-16 text-[#e8e2d4]">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/" className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40 hover:text-[#f0b429]">
-          ← Auren
-        </Link>
+    <Leaf full>
+      <Back href="/">← Auren</Back>
 
-        <h1 className="mt-6 font-serif text-4xl">The Census</h1>
-        <p className="mt-2 text-sm text-[#e8e2d4]/50">
-          {unavailable
-            ? "The records are unreachable just now."
-            : `${characters.length} accepted`}
-        </p>
+      <p className="eyebrow mt-10">Roll of souls</p>
+      <h1 className="display mt-3 text-[clamp(2.4rem,6vw,3.6rem)]">The Census</h1>
+      <p className="mt-2 text-sm text-ink-soft">
+        {unavailable
+          ? "The records are unreachable just now."
+          : `${characters.length} accepted`}
+      </p>
+      <div className="hair mt-8" />
 
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2">
-          {characters.map((c) => (
-            <li
-              key={c.id}
-              className="rounded-sm border border-white/10 p-5 transition-colors hover:border-[#f0b429]/40"
-            >
-              <h2 className="font-serif text-xl">{c.character_name}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#e8e2d4]/65">
-                {c.answers?.concept ?? ""}
-              </p>
-            </li>
-          ))}
-        </ul>
+      <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+        {characters.map((c, i) => (
+          <li
+            key={c.id}
+            className="record p-6 transition-transform hover:-translate-y-0.5"
+          >
+            <span className="numeral !text-left text-base">{i + 1}</span>
+            <h2 className="display mt-1 text-2xl">{c.character_name}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+              {c.answers?.concept ?? ""}
+            </p>
+          </li>
+        ))}
+      </ul>
 
-        {!unavailable && characters.length === 0 && (
-          <p className="mt-10 text-sm text-[#e8e2d4]/50">
-            Nobody has been accepted yet.
-          </p>
-        )}
-      </div>
-    </main>
+      {!unavailable && characters.length === 0 && (
+        <p className="mt-10 text-sm text-ink-soft">Nobody has been accepted yet.</p>
+      )}
+    </Leaf>
   );
 }

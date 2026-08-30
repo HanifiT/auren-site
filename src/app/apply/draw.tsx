@@ -34,16 +34,12 @@ export function DrawCard({ cynnId }: { cynnId: string }) {
 
   if (card) {
     return (
-      <div className="mt-10 rounded-sm border border-[#f0b429]/40 p-8 text-center">
-        <div className="font-serif text-7xl text-[#f0b429] tabular-nums">
-          {shown}
-        </div>
-        <div className="mt-2 text-xs uppercase tracking-[0.35em] text-[#e8e2d4]/45">
-          {card.line}
-        </div>
-        <p className="mx-auto mt-6 max-w-prose text-[#e8e2d4]/80">{card.text}</p>
+      <div className="mt-10 border-y-2 border-vellum-deep py-8 text-center">
+        <div className="display text-7xl tabular-nums text-rubric">{shown}</div>
+        <div className="eyebrow mt-3">{card.line}</div>
+        <p className="mx-auto mt-6 max-w-prose">{card.text}</p>
         {card.hook && (
-          <p className="mx-auto mt-4 max-w-prose border-t border-white/10 pt-4 text-sm italic text-[#e8e2d4]/50">
+          <p className="mx-auto mt-5 max-w-prose border-t border-vellum-deep pt-4 text-sm italic text-ink-soft">
             {card.hook}
           </p>
         )}
@@ -62,15 +58,15 @@ export function DrawCard({ cynnId }: { cynnId: string }) {
             else if (res.card) reveal(res.card);
           })
         }
-        className="rounded-sm border border-[#f0b429]/60 px-10 py-4 text-sm uppercase tracking-[0.3em] text-[#f0b429] transition-colors hover:bg-[#f0b429] hover:text-[#0b0f0c] disabled:opacity-40"
+        className="act act--rubric"
       >
         {pending ? "Reading…" : "Draw the House's history"}
       </button>
-      <p className="mt-4 text-xs text-[#e8e2d4]/40">
+      <p className="hint mx-auto mt-4 max-w-sm">
         What the line was known for before it took ship. Once, and it does not
         change.
       </p>
-      {error && <p className="mt-3 text-sm text-[#e2725b]">{error}</p>}
+      {error && <p className="mt-3 text-sm text-rubric">{error}</p>}
     </div>
   );
 }

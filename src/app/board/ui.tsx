@@ -18,8 +18,8 @@ function pence(n: number): string {
 export function Reward({ p, tier }: { p: number; tier: string | null }) {
   return (
     <span className="whitespace-nowrap text-sm">
-      <span className="text-[#f0b429]">{pence(p)}</span>
-      {tier && <span className="ml-2 text-[#a3be5c]">· {tier} Ār</span>}
+      <span className="text-rubric">{pence(p)}</span>
+      {tier && <span className="ml-2 text-[#4d6b3f]">· {tier} Ār</span>}
     </span>
   );
 }
@@ -28,18 +28,18 @@ export function TakeButton({ missionId, taken }: { missionId: string; taken: boo
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   if (taken) {
-    return <span className="text-xs uppercase tracking-wider text-[#a3be5c]">taken</span>;
+    return <span className="text-xs uppercase tracking-wider text-[#4d6b3f]">taken</span>;
   }
   return (
     <span className="flex flex-col items-end gap-1">
       <button
         disabled={pending}
         onClick={() => start(async () => setError((await take(missionId)).error ?? null))}
-        className="rounded-sm border border-[#f0b429]/60 px-5 py-1.5 text-xs uppercase tracking-[0.2em] text-[#f0b429] transition-colors hover:bg-[#f0b429] hover:text-[#0b0f0c] disabled:opacity-40"
+        className="act act--rubric act--small"
       >
         {pending ? "…" : "Take"}
       </button>
-      {error && <span className="text-xs text-[#e2725b]">{error}</span>}
+      {error && <span className="text-xs text-rubric">{error}</span>}
     </span>
   );
 }
@@ -48,7 +48,7 @@ export function SubmitWork({ claimId }: { claimId: string }) {
   const [pending, start] = useTransition();
   const [done, setDone] = useState(false);
   if (done) {
-    return <span className="text-xs uppercase tracking-wider text-[#f0b429]">submitted</span>;
+    return <span className="text-xs uppercase tracking-wider text-rubric">submitted</span>;
   }
   return (
     <form
@@ -60,11 +60,11 @@ export function SubmitWork({ claimId }: { claimId: string }) {
         name="note"
         placeholder="What did you do?"
         maxLength={2000}
-        className="flex-1 rounded-sm border border-white/15 bg-white/[0.03] px-3 py-2 text-sm outline-none focus:border-[#f0b429]/60"
+        className="flex-1 border border-vellum-deep bg-[rgba(255,250,236,.5)] px-3 py-2 text-sm outline-none focus:border-rubric"
       />
       <button
         disabled={pending}
-        className="rounded-sm border border-white/20 px-4 py-2 text-xs uppercase tracking-wider text-[#e8e2d4]/70 hover:border-[#f0b429]/60 hover:text-[#f0b429] disabled:opacity-40"
+        className="act act--ink act--small"
       >
         {pending ? "…" : "Submit"}
       </button>
@@ -75,7 +75,7 @@ export function SubmitWork({ claimId }: { claimId: string }) {
 export function Settle({ claimId }: { claimId: string }) {
   const [pending, start] = useTransition();
   const [result, setResult] = useState<string | null>(null);
-  if (result) return <span className="text-xs text-[#a3be5c]">{result}</span>;
+  if (result) return <span className="text-xs text-[#4d6b3f]">{result}</span>;
   return (
     <span className="flex gap-2">
       {([true, false] as const).map((pay) => (
@@ -92,10 +92,10 @@ export function Settle({ claimId }: { claimId: string }) {
               );
             })
           }
-          className={`rounded-sm border px-4 py-1.5 text-xs uppercase tracking-wider transition-colors disabled:opacity-40 ${
+          className={`border px-4 py-1.5 text-xs uppercase tracking-wider transition-colors disabled:opacity-40 ${
             pay
-              ? "border-[#4c9a2a]/50 text-[#a3be5c] hover:bg-[#4c9a2a]/15"
-              : "border-[#6e8b74]/50 text-[#6e8b74] hover:bg-[#6e8b74]/10"
+              ? "border-[#4d6b3f] text-[#4d6b3f] hover:bg-[rgba(77,107,63,.1)]"
+              : "border-vellum-deep text-ink-faint hover:bg-[rgba(255,250,236,.5)]"
           }`}
         >
           {pay ? "Pay" : "Reject"}
@@ -110,13 +110,13 @@ export function PostMission({ towns }: { towns: readonly { name: string }[] }) {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const field =
-    "w-full rounded-sm border border-white/15 bg-white/[0.03] px-3 py-2 text-sm outline-none focus:border-[#f0b429]/60";
+    "w-full border border-vellum-deep bg-[rgba(255,250,236,.5)] px-3 py-2 text-sm outline-none focus:border-rubric";
 
   if (!open) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-sm border border-[#f0b429]/60 px-6 py-2 text-xs uppercase tracking-[0.2em] text-[#f0b429] hover:bg-[#f0b429] hover:text-[#0b0f0c]"
+        className="act act--rubric act--small"
       >
         Post work
       </button>
@@ -132,7 +132,7 @@ export function PostMission({ towns }: { towns: readonly { name: string }[] }) {
           if (!r.error) setOpen(false);
         })
       }
-      className="space-y-3 rounded-sm border border-[#f0b429]/30 p-5"
+      className="space-y-3 border border-vellum-deep p-5"
     >
       <input name="title" placeholder="Title" maxLength={120} required className={field} />
       <textarea name="brief" placeholder="What is the work?" rows={3} maxLength={4000} required className={field} />
@@ -151,14 +151,14 @@ export function PostMission({ towns }: { towns: readonly { name: string }[] }) {
           {towns.map((t) => <option key={t.name} value={t.name}>{t.name}</option>)}
         </select>
       </div>
-      {error && <p className="text-sm text-[#e2725b]">{error}</p>}
+      {error && <p className="text-sm text-rubric">{error}</p>}
       <div className="flex gap-2">
         <button disabled={pending}
-          className="rounded-sm border border-[#f0b429]/60 px-6 py-2 text-xs uppercase tracking-[0.2em] text-[#f0b429] hover:bg-[#f0b429] hover:text-[#0b0f0c] disabled:opacity-40">
+          className="act act--rubric act--small">
           {pending ? "Posting…" : "Post"}
         </button>
         <button type="button" onClick={() => setOpen(false)}
-          className="rounded-sm border border-white/15 px-4 py-2 text-xs uppercase tracking-wider text-[#e8e2d4]/50">
+          className="act act--ink act--small">
           Cancel
         </button>
       </div>

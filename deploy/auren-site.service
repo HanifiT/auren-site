@@ -1,0 +1,26 @@
+# systemd unit for the auren-rp.xyz site. Install:
+#   sudo cp ~/auren-bot/site/deploy/auren-site.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now auren-site
+# Mirrors homefund.service, which is the known-good pattern on this box.
+#
+# Secrets are NOT in this unit: Next loads .env.local automatically in
+# production, so DATABASE_URL / Discord / NEXTAUTH stay in that 0600 file
+# instead of being world-readable in /etc/systemd/system.
+[Unit]
+Description=Auren RP site (auren-rp.xyz)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=shihai
+WorkingDirectory=/home/shihai/auren-bot/site
+Environment=NODE_ENV=production
+Environment=PORT=3200
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node /home/shihai/auren-bot/site/node_modules/next/dist/bin/next start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

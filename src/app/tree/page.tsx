@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
 import { edgesFor, householdOf, shapeKin } from "@/lib/tree";
+import { Back, Leaf } from "@/components/leaf";
 import { Awaiting, Branch, ClaimForm } from "./ui";
 
 export const dynamic = "force-dynamic";
@@ -27,37 +27,32 @@ export default async function Tree() {
   const others = household.filter((p) => p.id !== me.id);
 
   return (
-    <main className="min-h-dvh bg-[#0b0f0c] px-6 py-16 text-[#e8e2d4]">
-      <div className="mx-auto max-w-2xl">
-        <Link href="/me"
-              className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40 hover:text-[#f0b429]">
-          ← Your record
-        </Link>
+    <Leaf full width="max-w-2xl">
+      <Back href="/me">← Your record</Back>
 
-        <h1 className="mt-6 font-serif text-4xl">{house.name}</h1>
-        <p className="mt-1 text-sm text-[#e8e2d4]/50">
-          {me.name} · {household.length} in the House
+      <p className="eyebrow mt-10">The tree</p>
+      <h1 className="display mt-3 text-[clamp(2.4rem,6vw,3.4rem)]">{house.name}</h1>
+      <p className="mt-2 text-sm text-ink-soft">
+        {me.name} · {household.length} in the House
+      </p>
+      <div className="hair mt-8" />
+
+      <Awaiting edges={kin.awaiting} />
+
+      <section className="mt-10 grid gap-8 sm:grid-cols-3">
+        <Branch title="Parents" people={kin.parents} />
+        <Branch title="Married to" people={kin.spouses} />
+        <Branch title="Children" people={kin.children} />
+      </section>
+
+      <section className="mt-14 border-t border-vellum-deep pt-8">
+        <p className="eyebrow">Claim a tie</p>
+        <p className="mt-3 text-sm text-ink-soft">
+          A claim is a claim about someone else, so it stays pending until they
+          agree. Only agreed ties are in the tree.
         </p>
-
-        <Awaiting edges={kin.awaiting} />
-
-        <section className="mt-10 grid gap-8 sm:grid-cols-3">
-          <Branch title="Parents" people={kin.parents} />
-          <Branch title="Married to" people={kin.spouses} />
-          <Branch title="Children" people={kin.children} />
-        </section>
-
-        <section className="mt-12 border-t border-white/10 pt-8">
-          <h2 className="text-xs uppercase tracking-[0.3em] text-[#e8e2d4]/40">
-            Claim a tie
-          </h2>
-          <p className="mt-2 text-sm text-[#e8e2d4]/55">
-            A claim is a claim about someone else, so it stays pending until
-            they agree. Only agreed ties are in the tree.
-          </p>
-          <ClaimForm household={others} />
-        </section>
-      </div>
-    </main>
+        <ClaimForm household={others} />
+      </section>
+    </Leaf>
   );
 }
