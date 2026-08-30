@@ -4,14 +4,34 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import { drawFor, foundCynn, petitionCynn } from "@/lib/cynn";
+import { readColour } from "@/lib/colour";
+import { drawFor, foundCynn, petitionCynn, takenColours } from "@/lib/cynn";
 import { storeImage } from "@/lib/upload";
+import {
+  BEARING, BUILDS, COMPLEXIONS, EYE_COLOURS, HAIR_COLOURS, TRADES,
+} from "@/lib/options";
 
 export type ApplyState = { error?: string; ok?: boolean };
 
 const LIMITS: Record<string, number> = {
   houseName: 60, motto: 120, name: 100, short: 300, bio: 4000,
+  hairStyle: 80, marks: 200,
 };
+
+/**
+ * A value the form offered, or nothing.
+ *
+ * The appearance columns are TEXT with no CHECK (db/012) so that staff and the
+ * bot stay free to write anything a correction needs — which means the site is
+ * the only thing standing between a crafted POST and "Hair: <script>". Every
+ * picker is therefore checked against the list it was rendered from, and an
+ * unrecognised value is dropped rather than argued with: it can only come from
+ * someone editing the request, and they do not need an error message.
+ */
+function fromList(value: string, allowed: readonly string[]): string | null {
+  if (!value) return null;
+  return allowed.includes(value) ? value : null;
+}
 
 /**
  * Create a character, founding a House or petitioning to join one.
@@ -31,14 +51,28 @@ export async function create(
   const get = (k: string) => String(form.get(k) ?? "").trim();
   const mode = get("mode");
 
+  const heightRaw = get("height_cm");
+  const height = heightRaw ? Number(heightRaw) : null;
+
   const character = {
     name: get("name"),
     age: get("age") ? Number(get("age")) : null,
     short: get("short"),
     bio: get("bio"),
-    bearing: get("bearing"),
-    trade: get("trade"),
+    bearing: fromList(get("bearing"), BEARING) ?? "",
+    trade: fromList(get("trade"), TRADES) ?? "",
     portraitPath: null as string | null,
+
+    // Description, not statistics. None of it is required: a census that
+    // refuses to record someone because they did not say what colour their
+    // eyes are is not a census.
+    hairColour: fromList(get("hair_colour"), HAIR_COLOURS),
+    hairStyle: get("hair_style").slice(0, LIMITS.hairStyle) || null,
+    eyes: fromList(get("eyes"), EYE_COLOURS),
+    complexion: fromList(get("complexion"), COMPLEXIONS),
+    build: fromList(get("build"), BUILDS),
+    heightCm: height,
+    marks: get("marks").slice(0, LIMITS.marks) || null,
   };
 
   if (!character.name) return { error: "A name is required." };
@@ -49,6 +83,11 @@ export async function create(
   if (character.age !== null && (!Number.isInteger(character.age) ||
       character.age < 0 || character.age > 200)) {
     return { error: "That age is not a number of years." };
+  }
+  // The same bound the database carries, so the refusal is a sentence rather
+  // than a constraint violation.
+  if (height !== null && (!Number.isInteger(height) || height < 100 || height > 250)) {
+    return { error: "That height is not a number of centimetres between 100 and 250." };
   }
 
   // Uploads are re-encoded, never stored as given — see lib/upload.
@@ -76,6 +115,13 @@ export async function create(
   const originTown = get("origin_town");
   if (!originTown) return { error: "Choose where the line is from." };
 
+  // The colour the House will wear in Discord. Checked here rather than only
+  // at the column because "too dark to read" and "too near another House" are
+  // judgements a CHECK constraint cannot make, and because a refusal after the
+  // crest has been uploaded is a worse refusal.
+  const colour = readColour(get("colour"), await takenColours());
+  if (!colour.ok) return { error: colour.reason };
+
   let crestPath: string | null = null;
   const crest = form.get("crest");
   if (crest instanceof File && crest.size > 0) {
@@ -90,6 +136,7 @@ export async function create(
     motto: get("motto").slice(0, LIMITS.motto),
     originTown,
     crestPath,
+    colour: colour.value,
     character,
   });
   if (!res.ok) return { error: res.reason };

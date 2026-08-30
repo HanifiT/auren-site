@@ -21,6 +21,7 @@ export type Cynn = {
   draw_hook: string | null;
   ar: number;
   successions: number;
+  colour: number | null;
 };
 
 export type Character = {
@@ -33,15 +34,66 @@ export type Character = {
   bio: string | null;
   bearing: string | null;
   trade: string | null;
+  hair_colour: string | null;
+  hair_style: string | null;
+  eyes: string | null;
+  complexion: string | null;
+  build: string | null;
+  height_cm: number | null;
+  marks: string | null;
   membership: "pending" | "admitted" | "disowned";
   status: "living" | "dead";
   at_town: string | null;
 };
 
+/** What the census hands the database. Appearance is optional throughout. */
+export type NewCharacter = {
+  name: string;
+  age: number | null;
+  short: string;
+  bio: string;
+  bearing: string;
+  trade: string;
+  portraitPath: string | null;
+  hairColour: string | null;
+  hairStyle: string | null;
+  eyes: string | null;
+  complexion: string | null;
+  build: string | null;
+  heightCm: number | null;
+  marks: string | null;
+};
+
+/**
+ * The one place the character columns are listed.
+ *
+ * Founding and petitioning differ in what happens *around* the insert, never
+ * in what a character is — writing the column list twice is how the two drift
+ * and one of them silently stops recording someone's hair.
+ */
+const CHARACTER_INSERT = `
+  INSERT INTO character
+    (owner_id, cynn_id, name, age, portrait_path, short, bio, bearing, trade,
+     hair_colour, hair_style, eyes, complexion, build, height_cm, marks)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`;
+
+function characterValues(
+  discordId: string,
+  cynnId: string,
+  c: NewCharacter,
+): unknown[] {
+  return [
+    discordId, cynnId, c.name, c.age, c.portraitPath, c.short, c.bio,
+    c.bearing, c.trade, c.hairColour, c.hairStyle, c.eyes, c.complexion,
+    c.build, c.heightCm, c.marks,
+  ];
+}
+
 export async function cynnFor(discordId: string): Promise<Cynn | null> {
   const { rows } = await pool.query<Cynn>(
     `SELECT c.id::text, c.name, c.motto, c.crest_path, c.origin_town,
-            c.draw_card_id, c.draw_text, c.draw_hook, c.ar, c.successions
+            c.draw_card_id, c.draw_text, c.draw_hook, c.ar, c.successions,
+            c.colour
        FROM cynn c JOIN character ch ON ch.cynn_id = c.id
       WHERE ch.owner_id = $1 AND ch.status = 'living'
       LIMIT 1`,
@@ -53,7 +105,8 @@ export async function cynnFor(discordId: string): Promise<Cynn | null> {
 export async function characterFor(discordId: string): Promise<Character | null> {
   const { rows } = await pool.query<Character>(
     `SELECT id::text, cynn_id::text, name, age, portrait_path, short, bio,
-            bearing, trade, membership, status, at_town
+            bearing, trade, hair_colour, hair_style, eyes, complexion, build,
+            height_cm, marks, membership, status, at_town
        FROM character WHERE owner_id = $1 AND status = 'living' LIMIT 1`,
     [discordId],
   );
@@ -69,6 +122,20 @@ export async function listHouses(): Promise<{ id: string; name: string; ar: numb
 }
 
 /**
+ * The colours the standing Houses already wear.
+ *
+ * Read before the insert so a collision is a sentence in the form rather than
+ * a constraint violation after the crest has been uploaded. The unique index
+ * is still the authority — this races, and losing the race is handled below.
+ */
+export async function takenColours(): Promise<number[]> {
+  const { rows } = await pool.query<{ colour: number }>(
+    `SELECT colour FROM cynn WHERE disbanded_at IS NULL AND colour IS NOT NULL`,
+  );
+  return rows.map((r) => Number(r.colour));
+}
+
+/**
  * Found a House and make its first character, in one transaction.
  *
  * Both or neither: a House with no members is unreachable, and a character
@@ -80,47 +147,56 @@ export async function foundCynn(params: {
   motto: string;
   originTown: string;
   crestPath: string | null;
-  character: {
-    name: string; age: number | null; short: string; bio: string;
-    bearing: string; trade: string; portraitPath: string | null;
-  };
+  colour: number;
+  character: NewCharacter;
 }): Promise<{ ok: true; cynnId: string } | { ok: false; reason: string }> {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const { rows } = await client.query<{ id: string }>(
-      `INSERT INTO cynn (name, motto, crest_path, origin_town, founded_by)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id::text`,
+      `INSERT INTO cynn (name, motto, crest_path, origin_town, founded_by, colour)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id::text`,
       [params.houseName, params.motto || null, params.crestPath,
-       params.originTown, params.discordId],
+       params.originTown, params.discordId, params.colour],
     );
     const cynnId = rows[0].id;
     const c = params.character;
     // The founder admits themselves — there is nobody else to do it, and the
     // consent rule exists to stop people attaching to someone else's name.
-    await client.query(
-      `INSERT INTO character
-         (owner_id, cynn_id, name, age, portrait_path, short, bio, bearing, trade)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [params.discordId, cynnId, c.name, c.age, c.portraitPath,
-       c.short, c.bio, c.bearing, c.trade],
-    );
-    await client.query(
-      `UPDATE character SET membership = 'admitted', admitted_at = now(),
-                            admitted_by = $1
-        WHERE owner_id = $1 AND cynn_id = $2`,
-      [params.discordId, cynnId],
-    );
+    await client.query(CHARACTER_INSERT, characterValues(params.discordId, cynnId, c));
+    // Not an UPDATE: `membership`, `admitted_at` and `admitted_by` are outside
+    // the site's grants on purpose, because a site that can write membership is
+    // a site where one bug admits anyone to any House. `cynn_admit_founder`
+    // (db/013) is SECURITY DEFINER and carries the "only the founder, only
+    // once, only at founding" rule with it.
+    await client.query("SELECT cynn_admit_founder($1, $2)", [cynnId, params.discordId]);
     await client.query("COMMIT");
     return { ok: true, cynnId };
   } catch (err) {
     await client.query("ROLLBACK");
-    const e = err as { code?: string; message?: string };
-    if (e.code === "23505") {
+    const e = err as { code?: string; constraint?: string; message?: string };
+    // A real constraint violation carries `constraint`; the ones raised by
+    // cynn_admit_founder do not, which is the only way to tell "that name is
+    // taken" from "you are already in the census" — both are 23505.
+    if (e.code === "23505" && e.constraint === "cynn_colour_unique") {
+      // Lost the race against another founding between takenColours() and
+      // here. Rare, and the only honest thing to say is "pick another".
+      return { ok: false, reason: "A House has just taken that colour. Choose another." };
+    }
+    if (e.code === "23505" && e.constraint) {
       return { ok: false, reason: "A House already carries that name." };
     }
+    if (e.code === "23505") {
+      return {
+        ok: false,
+        reason: e.message?.includes("already entered")
+          ? "You are already entered in the census — one living name each."
+          : "That House has already been founded.",
+      };
+    }
     if (e.code === "42501") {
-      // Exactly what the column grants are for.
+      // Reaching this now means a grant is genuinely missing, not that the
+      // founding path is trying to write membership — see db/013.
       return { ok: false, reason: "That field is not the site's to write." };
     }
     console.error("foundCynn failed", err);
@@ -134,20 +210,11 @@ export async function foundCynn(params: {
 export async function petitionCynn(params: {
   discordId: string;
   cynnId: string;
-  character: {
-    name: string; age: number | null; short: string; bio: string;
-    bearing: string; trade: string; portraitPath: string | null;
-  };
+  character: NewCharacter;
 }): Promise<{ ok: true } | { ok: false; reason: string }> {
   const c = params.character;
   try {
-    await pool.query(
-      `INSERT INTO character
-         (owner_id, cynn_id, name, age, portrait_path, short, bio, bearing, trade)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [params.discordId, params.cynnId, c.name, c.age, c.portraitPath,
-       c.short, c.bio, c.bearing, c.trade],
-    );
+    await pool.query(CHARACTER_INSERT, characterValues(params.discordId, params.cynnId, c));
     return { ok: true };
   } catch (err) {
     console.error("petitionCynn failed", err);
