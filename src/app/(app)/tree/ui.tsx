@@ -9,24 +9,18 @@ type Person = { id: string; name: string; confirmed: boolean };
 
 export function Branch({ title, people }: { title: string; people: Person[] }) {
   return (
-    <div>
-      <h3 className="text-xs uppercase tracking-[0.25em] text-ink-faint">
-        {title}
-      </h3>
+    <div className="kin-col">
+      <p className="note-head">{title}</p>
       {people.length === 0 ? (
-        <p className="mt-2 text-sm text-ink-faint">—</p>
+        <p className="kin-none">—</p>
       ) : (
-        <ul className="mt-2 space-y-1.5">
+        <ul className="roster">
           {people.map((p) => (
-            <li key={p.id} className="flex items-center gap-2 text-sm">
-              <span className={p.confirmed ? "" : "text-ink-faint"}>
-                {p.name}
+            <li key={p.id}>
+              <span className="roster-main">{p.name}</span>
+              <span className="roster-note">
+                {p.confirmed ? "agreed" : "claimed — waiting on them"}
               </span>
-              {!p.confirmed && (
-                <span className="rounded-full border border-vellum-deep px-2 py-0.5 text-[10px] uppercase tracking-wider text-rubric">
-                  pending
-                </span>
-              )}
             </li>
           ))}
         </ul>
@@ -35,29 +29,36 @@ export function Branch({ title, people }: { title: string; people: Person[] }) {
   );
 }
 
+/**
+ * Claims made about you, unanswered.
+ *
+ * It sits at the top of the view rather than at the bottom: somebody has named
+ * you and nothing renders in either tree until you answer, which makes it the
+ * only thing on the page that is waiting on you.
+ */
 export function Awaiting({ edges }: { edges: Edge[] }) {
   const [pending, start] = useTransition();
   if (edges.length === 0) return null;
   return (
-    <section className="mt-10 border border-vellum-deep bg-[rgba(148,48,30,.05)] p-5">
-      <h2 className="text-xs uppercase tracking-[0.3em] text-rubric">
-        Claims about you
-      </h2>
-      <p className="mt-2 text-sm text-ink-soft">
-        Someone has named you. Nothing renders in the tree until you agree.
+    <section className="awaiting">
+      <p className="note-head">Claims about you</p>
+      <p>
+        Somebody has named you. Nothing renders in the tree — theirs or yours —
+        until you agree.
       </p>
-      <ul className="mt-4 space-y-2">
+      <ul className="roster" style={{ marginTop: "0.8rem" }}>
         {edges.map((e) => (
-          <li key={e.id} className="flex items-center justify-between gap-4">
-            <span className="text-sm">
+          <li key={e.id} className="awaiting-row">
+            <span>
               {e.kind === "married_to"
                 ? `${e.from_name} claims to be married to ${e.to_name}`
                 : `${e.from_name} claims to be parent of ${e.to_name}`}
             </span>
             <button
+              type="button"
               disabled={pending}
               onClick={() => start(() => void confirm(e.id))}
-              className="act act--ink act--small"
+              className="btn btn--ghost"
             >
               Agree
             </button>
@@ -78,10 +79,11 @@ export function ClaimForm({
 
   if (household.length === 0) {
     return (
-      <p className="mt-4 text-sm text-ink-faint">
-        Nobody else is in the House yet. Most of a tree is forebears who were
-        never players — staff can add them.
-      </p>
+      <div className="empty" style={{ marginTop: "1rem" }}>
+        <strong>Nobody else is in the House yet.</strong>
+        Most of a tree is forebears who were never players, and staff enter
+        those. There is nobody here to claim a tie with.
+      </div>
     );
   }
 
@@ -93,39 +95,37 @@ export function ClaimForm({
           setError(res.error ?? null);
         })
       }
-      className="mt-4 flex flex-wrap items-end gap-3"
+      className="claim"
     >
-      <label className="block">
-        <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-ink-faint">
-          Who
-        </span>
-        <select name="other" required defaultValue=""
-          className="border border-vellum-deep px-3 py-2 text-sm text-ink outline-none">
-          <option value="" disabled>Choose</option>
+      <label className="claim-field">
+        <span className="field-name">Who</span>
+        <select name="other" required defaultValue="">
+          <option value="" disabled>
+            Choose
+          </option>
           {household.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
           ))}
         </select>
       </label>
-      <label className="block">
-        <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-ink-faint">
-          Is my
-        </span>
-        <select name="relation" required defaultValue="parent"
-          className="border border-vellum-deep px-3 py-2 text-sm text-ink outline-none">
+      <label className="claim-field">
+        <span className="field-name">Is my</span>
+        <select name="relation" required defaultValue="parent">
           <option value="parent">parent</option>
           <option value="child">child</option>
           <option value="spouse">spouse</option>
         </select>
       </label>
-      <button
-        type="submit"
-        disabled={pending}
-        className="act act--rubric act--small"
-      >
+      <button type="submit" disabled={pending} className="btn">
         {pending ? "Claiming…" : "Claim"}
       </button>
-      {error && <p className="w-full text-sm text-rubric">{error}</p>}
+      {error && (
+        <p className="claim-error" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   );
 }
