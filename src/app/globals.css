@@ -1460,3 +1460,64 @@ input[type="range"]::-moz-range-thumb {
     min-height: 3.8rem;
   }
 }
+
+/* One gold mark at a section head. Line only, no fill, no state, no motion. */
+.ornament {
+  flex: none;
+  opacity: 0.9;
+}
+
+/* The rail's foot is hidden under 900px, so the slot count it carries appears
+   at the end of the Hearth instead. Exactly one of the two ever shows. */
+.only-narrow {
+  display: none;
+}
+@media (max-width: 900px) {
+  .only-narrow {
+    display: block;
+  }
+}
+
+/* ── the record's head: a likeness beside the ruled grid ─────────────────── */
+
+.record-top {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: 1.6rem;
+  align-items: start;
+}
+.portrait {
+  margin: 0;
+}
+.portrait img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border: 1px solid var(--rule);
+}
+.portrait-absent {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  border: 1px dashed var(--rule);
+  background: rgba(168, 132, 44, 0.07);
+  color: var(--moss-ink);
+  font-size: 0.84rem;
+  font-style: italic;
+}
+.portrait figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--moss-ink);
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .record-top {
+    grid-template-columns: 1fr;
+  }
+  .portrait {
+    max-width: 14rem;
+  }
+}

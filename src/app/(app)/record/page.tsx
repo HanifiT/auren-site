@@ -4,88 +4,253 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
 import { inchesToWords } from "@/lib/options";
+import { deedsForCharacter } from "@/lib/roll";
+import {
+  Empty,
+  Field,
+  Ledger,
+  LedgerBlock,
+  Note,
+  PageHead,
+  Stamp,
+  onDay,
+} from "@/components/register";
+import { Ornament } from "@/components/ornament";
 
 export const dynamic = "force-dynamic";
 
 /**
- * The record — the character sheet.
+ * The Record — the character sheet, in the manner of a filled-in registry.
  *
- * Lifted out of the old `/me`, which carried the sheet and the House on one
- * page. Split because they answer different questions and the House needs the
- * whole ladder beside it.
+ * Dense on purpose: small labelled fields in a ruled grid, because that is most
+ * of what makes a sheet read as a sheet rather than as a paragraph about a
+ * person. Empty fields still print — a sheet with the gaps quietly removed
+ * reads as a shorter sheet, which is a lie about what the census holds, and on
+ * the day a character is entered most of it is empty.
+ *
+ * FIVE FIELDS HAVE NO COLUMN IN THE REGISTER and are marked as such rather than
+ * invented: voice, born, tongue, carried belongings and oaths sworn. The
+ * `character` table (db/007, db/011, db/012) holds appearance, trade, prose and
+ * whereabouts, and there is no item table and no oath table anywhere in the
+ * schema. Filling them with plausible text would be a mock, and a mock on a
+ * page whose whole claim is "this is what is written down" is the worst place
+ * to put one. They say what they are: a field the register does not yet keep.
+ *
+ * Everything here is a read. Amending a record happens in Discord — the site's
+ * Postgres role can write prose and appearance (db/012) but this view is not
+ * the census form, and departure in particular is the bot's to write.
  */
 export default async function Record() {
   const session = await getServerSession(authOptions);
   if (!session?.discordId) redirect("/");
 
-  const [character, cynn] = await Promise.all([
-    characterFor(session.discordId),
-    cynnFor(session.discordId),
-  ]);
-  if (!character) redirect("/hearth");
+  let character = null, cynn = null;
+  let deeds: Awaited<ReturnType<typeof deedsForCharacter>> = [];
+  let unavailable = false;
+  try {
+    [character, cynn] = await Promise.all([
+      characterFor(session.discordId),
+      cynnFor(session.discordId),
+    ]);
+    if (character) deeds = await deedsForCharacter(character.id);
+  } catch {
+    unavailable = true;
+  }
+
+  if (unavailable) {
+    return (
+      <>
+        <PageHead eyebrow="Roll of souls" title="The Record" />
+        <Empty
+          title="The records are unreachable just now."
+          line="Nothing is lost."
+        />
+      </>
+    );
+  }
+
+  if (!character) {
+    return (
+      <>
+        <PageHead eyebrow="Roll of souls" title="The Record" />
+        <Empty
+          title="Nothing is written against this name."
+          line="The census sits open at the next blank line. Present yourself and the Praesidium enters you here."
+        />
+      </>
+    );
+  }
+
+  const entered = onDay(character.created_at);
+  const totalAr = deeds.reduce((n, d) => n + d.ar, 0);
 
   return (
     <>
-      <header>
-        <p className="eyebrow">Roll of souls · entered</p>
-        <h1 className="display mt-3 text-[clamp(2.4rem,6vw,3.6rem)]">
-          {character.name}
-        </h1>
-        <p className="mt-1 italic text-ink-soft">
-          {cynn ? `of ${cynn.name}, of ${cynn.origin_town}` : "of no House"}
-        </p>
-      </header>
+      <PageHead
+        eyebrow={`Roll of souls · entered ${entered ?? "—"}`}
+        title={character.name}
+        epithet={
+          cynn ? `of ${cynn.name}, of ${cynn.origin_town}` : "of no House"
+        }
+        aside={<Stamp word={character.membership} />}
+      />
 
-      <div className="sheet-grid mt-8">
-        <Box label="Age" value={character.age} />
-        <Box label="Bearing" value={character.bearing} />
-        <Box label="Trade" value={character.trade} />
-        <Box
-          label="Height"
-          value={character.height_cm ? `${character.height_cm} cm` : null}
-          note={character.height_cm ? inchesToWords(character.height_cm) : null}
-        />
-        <Box label="Build" value={character.build} />
-        <Box label="Hair" value={character.hair_colour} note={character.hair_style} />
-        <Box label="Eyes" value={character.eyes} />
-        <Box label="Complexion" value={character.complexion} />
+      <div className="record-top">
+        <figure className="portrait">
+          {character.portrait_path ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={`/api/media/${character.portrait_path}`}
+              alt={`${character.name}, as entered in the census`}
+            />
+          ) : (
+            <div className="portrait-absent">
+              <span>No likeness taken</span>
+            </div>
+          )}
+          <figcaption>
+            {cynn ? `${cynn.name} · ${cynn.origin_town}` : "no House"}
+          </figcaption>
+        </figure>
+
+        <Ledger>
+          <LedgerBlock head="Of the body">
+            <Field
+              name="Age"
+              value={character.age}
+              under={character.age !== null ? "winters" : null}
+            />
+            <Field
+              name="Height"
+              value={character.height_cm ? `${character.height_cm} cm` : null}
+              under={
+                character.height_cm ? inchesToWords(character.height_cm) : null
+              }
+            />
+            <Field name="Build" value={character.build} />
+            <Field name="Bearing" value={character.bearing} />
+            <Field
+              name="Hair"
+              value={character.hair_colour}
+              under={character.hair_style}
+            />
+            <Field name="Eyes" value={character.eyes} />
+            <Field name="Complexion" value={character.complexion} />
+            <Field name="Voice" absent="no such column" />
+          </LedgerBlock>
+
+          <LedgerBlock head="Of the life">
+            <Field name="Trade" value={character.trade} />
+            <Field name="Born" absent="no such column" />
+            <Field name="House" value={cynn?.name ?? null} />
+            <Field name="Came" value={entered} under="entered in the census" />
+            <Field name="Tongue" absent="no such column" />
+            <Field
+              name="Last placed"
+              value={character.at_town}
+              under={character.at_town ? "by the census" : null}
+            />
+          </LedgerBlock>
+        </Ledger>
       </div>
 
-      <div className="panel mt-6">
-        <span className="box-label">Marks</span>
-        <p className="mt-1">{character.marks || "—"}</p>
+      <div className="pair pair--tight">
+        <Note head="Marks">
+          {character.marks ? (
+            <p>{character.marks}</p>
+          ) : (
+            <p className="hand">Nothing the assessor thought worth noting.</p>
+          )}
+        </Note>
+        <Note head="In the margin">
+          {character.short ? (
+            <p className="hand">{character.short}</p>
+          ) : (
+            <p className="hand">Nothing written in the margin.</p>
+          )}
+        </Note>
       </div>
-      <div className="panel mt-4">
-        <span className="box-label">In the margin</span>
-        <p className="mt-1">{character.short || "—"}</p>
-      </div>
-      <div className="panel mt-4">
-        <span className="box-label">The long account</span>
-        <p className="mt-1 whitespace-pre-wrap">{character.bio || "—"}</p>
-      </div>
-    </>
-  );
-}
 
-function Box({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value?: string | number | null;
-  note?: string | null;
-}) {
-  const empty = value === null || value === undefined || value === "";
-  return (
-    <div className="box">
-      <span className="box-label">{label}</span>
-      <span className={`box-value ${empty ? "box-value--empty" : ""}`}>
-        {empty ? "not said" : value}
-      </span>
-      {note && !empty && (
-        <span className="mt-1 block text-[0.78rem] text-ink-soft">{note}</span>
+      <section className="long">
+        <p className="note-head">The long account</p>
+        {character.bio ? (
+          <p>{character.bio}</p>
+        ) : (
+          <p className="hand">No account given.</p>
+        )}
+      </section>
+
+      <div className="pair pair--tight">
+        <Note head="Carried">
+          <p className="hand">
+            The register keeps no list of belongings. There is no item table in
+            the schema, and there deliberately isn&apos;t one yet.
+          </p>
+        </Note>
+        <Note head="Oaths sworn">
+          <p className="hand">
+            The register keeps no oaths. Bonds between Houses live in the tree
+            and are agreed by both ends; a personal oath has nowhere to be
+            written yet.
+          </p>
+        </Note>
+      </div>
+
+      <div className="section-head">
+        <Ornament mark="lantern" />
+        <h2>Entered by the Crown</h2>
+      </div>
+      <p className="quiet" style={{ maxWidth: "62ch" }}>
+        Deeds are witnessed, attributed and authored. The Ār they carry moves the
+        House, never the person — a member accumulates nothing, which is why
+        recruiting is not a strategy.
+      </p>
+
+      {deeds.length === 0 ? (
+        <div className="empty" style={{ marginTop: "1rem" }}>
+          Nothing entered against this name yet.
+        </div>
+      ) : (
+        <div className="scroll-x" style={{ marginTop: "1rem" }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Deed</th>
+                <th>Tier</th>
+                <th className="num">Ār to the House</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deeds.map((d) => (
+                <tr key={d.id}>
+                  <td>{onDay(d.awarded_at)}</td>
+                  <td>{d.reason}</td>
+                  <td className="quiet">{d.tier}</td>
+                  <td className="num">+{d.ar}</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={3} className="quiet">
+                  Carried to {cynn?.name ?? "no House"}
+                </td>
+                <td className="num">+{totalAr}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       )}
-    </div>
+
+      <div className="section-head">
+        <h2>Leaving</h2>
+      </div>
+      <p className="lede" style={{ marginTop: 0 }}>
+        Taking passage off the island sets this record to <em>departed</em> — a
+        third status beside living and dead, not a deletion. The line stays on
+        the roll with a stroke through it, the name is never freed, and the
+        living place it held is released. It is written in Discord: the site
+        reads the roll and the bot keeps it.
+      </p>
+    </>
   );
 }
