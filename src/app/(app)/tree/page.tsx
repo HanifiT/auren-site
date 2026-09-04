@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
 import { edgesFor, householdOf, shapeKin } from "@/lib/tree";
-import { Back, Leaf } from "@/components/leaf";
 import { Awaiting, Branch, ClaimForm } from "./ui";
 
 export const dynamic = "force-dynamic";
@@ -27,10 +26,8 @@ export default async function Tree() {
   const others = household.filter((p) => p.id !== me.id);
 
   return (
-    <Leaf full width="max-w-2xl">
-      <Back href="/me">← Your record</Back>
-
-      <p className="eyebrow mt-10">The tree</p>
+    <>
+      <p className="eyebrow">The tree</p>
       <h1 className="display mt-3 text-[clamp(2.4rem,6vw,3.4rem)]">{house.name}</h1>
       <p className="mt-2 text-sm text-ink-soft">
         {me.name} · {household.length} in the House
@@ -53,6 +50,6 @@ export default async function Tree() {
         </p>
         <ClaimForm household={others} />
       </section>
-    </Leaf>
+    </>
   );
 }

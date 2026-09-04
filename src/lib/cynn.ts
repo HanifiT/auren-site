@@ -22,6 +22,7 @@ export type Cynn = {
   ar: number;
   successions: number;
   colour: number | null;
+  founded_at: Date;
 };
 
 export type Character = {
@@ -42,8 +43,14 @@ export type Character = {
   height_cm: number | null;
   marks: string | null;
   membership: "pending" | "admitted" | "disowned";
-  status: "living" | "dead";
+  /**
+   * `departed` is a third value, not a delete — see db/016. Someone who takes
+   * passage off the island stays on the roll with the line struck through; the
+   * row is never removed and the name is never freed.
+   */
+  status: "living" | "dead" | "departed";
   at_town: string | null;
+  created_at: Date;
 };
 
 /** What the census hands the database. Appearance is optional throughout. */
@@ -93,7 +100,7 @@ export async function cynnFor(discordId: string): Promise<Cynn | null> {
   const { rows } = await pool.query<Cynn>(
     `SELECT c.id::text, c.name, c.motto, c.crest_path, c.origin_town,
             c.draw_card_id, c.draw_text, c.draw_hook, c.ar, c.successions,
-            c.colour
+            c.colour, c.founded_at
        FROM cynn c JOIN character ch ON ch.cynn_id = c.id
       WHERE ch.owner_id = $1 AND ch.status = 'living'
       LIMIT 1`,
@@ -106,7 +113,7 @@ export async function characterFor(discordId: string): Promise<Character | null>
   const { rows } = await pool.query<Character>(
     `SELECT id::text, cynn_id::text, name, age, portrait_path, short, bio,
             bearing, trade, hair_colour, hair_style, eyes, complexion, build,
-            height_cm, marks, membership, status, at_town
+            height_cm, marks, membership, status, at_town, created_at
        FROM character WHERE owner_id = $1 AND status = 'living' LIMIT 1`,
     [discordId],
   );

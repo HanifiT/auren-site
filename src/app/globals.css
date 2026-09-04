@@ -703,3 +703,83 @@ input[type="range"]::-moz-range-thumb {
     font-size: 1.1rem;
   }
 }
+
+/* ══ the app shell ═══════════════════════════════════════════════════════════
+ *
+ * One full-screen application. The shell owns the viewport: a fixed rail on the
+ * left and a scrolling content area to its right, with the fell behind both.
+ * Nothing here is a max-width column on a background — `.app` is `fixed` to the
+ * viewport and only `.quire` scrolls, so the rail is present at every scroll
+ * position without needing to be sticky and without a second scrollbar.
+ *
+ * Under 900px the rail becomes a horizontal scrolling bar above the content.
+ * Same links, same order: a different width is not a different information
+ * architecture.
+ */
+
+.app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  overflow: hidden;
+  background: var(--vellum);
+  color: var(--ink);
+}
+
+.rail {
+  position: relative;
+  z-index: 2;
+  width: 15.5rem;
+  flex: 0 0 15.5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 2.1rem 0 1.4rem;
+  overflow-y: auto;
+  border-right: 1px solid var(--vellum-deep);
+}
+
+.quire {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  overflow-y: auto;
+  /* The one place the app scrolls, so it is the one place that needs to be
+     reachable by keyboard scroll without focusing something inside it. */
+  scrollbar-gutter: stable;
+}
+
+.quire-inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 4vw, 3.9rem) clamp(1.1rem, 3.5vw, 3.5rem) 5.5rem;
+}
+
+/* ── the fell, behind everything ─────────────────────────────────────────── */
+
+.fell {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.fell svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  .app {
+    flex-direction: column;
+  }
+  .rail {
+    width: 100%;
+    flex: 0 0 auto;
+    padding: 1.1rem 0 0.6rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--vellum-deep);
+    overflow-y: visible;
+  }
+}

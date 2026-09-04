@@ -1,5 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /**
+   * Where the build lands.
+   *
+   * `next build` in the production directory replaces the content-hashed files
+   * under `.next` while the running `next start` still holds the old build
+   * manifest in memory, so the served HTML points at a stylesheet that no
+   * longer exists and every asset 400s. The page still returns 200, so a
+   * status check does not catch it — and restarting `auren-site` needs sudo,
+   * which is not always to hand.
+   *
+   * So a verification build sets NEXT_DIST_DIR (see `npm run build:verify`)
+   * and lands somewhere else entirely. Unset, this is Next's own default and
+   * the deploy is unchanged.
+   */
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   experimental: {
     serverActions: {
       /**
