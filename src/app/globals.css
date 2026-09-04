@@ -1521,3 +1521,149 @@ input[type="range"]::-moz-range-thumb {
     max-width: 14rem;
   }
 }
+
+/* ── the ladder ──────────────────────────────────────────────────────────── */
+
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+/* The stile the rungs sit on. Gold, because it is structure. */
+.ladder::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 1.1rem;
+  bottom: 1.1rem;
+  width: 1px;
+  background: var(--rule);
+}
+
+.rung {
+  position: relative;
+  display: flex;
+  gap: 1.05rem;
+  padding: 0.85rem 0;
+}
+/* Unreached: faded, but never below the point where the words stop reading.
+   The shortfall line under it is the whole reason it is on the page. */
+.rung:not(.rung--held) .rung-word,
+.rung:not(.rung--held) .rung-cost {
+  color: var(--moss-ink);
+}
+.rung:not(.rung--held) .rung-mark {
+  background: var(--vellum);
+  border-color: var(--moss);
+}
+
+.rung-mark {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 0.35rem;
+  border: 1px solid var(--gold);
+  background: var(--gold-lit);
+  transform: rotate(45deg);
+}
+
+.rung-body {
+  min-width: 0;
+}
+.rung-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.rung-word {
+  font-family: var(--font-display), "Cardo", Georgia, serif;
+  font-size: 1.3rem;
+  line-height: 1.15;
+  color: var(--leaf-deep);
+}
+.rung-name .gloss {
+  font-size: 0.88rem;
+}
+.rung-here-tag {
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.rung-cost {
+  margin-top: 0.15rem;
+  font-size: 0.86rem;
+  color: var(--bark);
+}
+/* What it is short by, in both currencies. Never the same colour as the rung
+   name, so the eye can skim the shortfalls alone down the whole ladder. */
+.rung-short {
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--gold-ink);
+}
+
+/* The rung the House actually holds. */
+.rung--here .rung-word {
+  color: var(--leaf-deep);
+}
+.rung--here .rung-mark {
+  border-color: var(--gold-ink);
+  box-shadow: 0 0 0 4px rgba(168, 132, 44, 0.2);
+}
+
+/*
+ * The one orchestrated moment: the current-rung mark settles when the House
+ * view opens. Transform and opacity only — nothing that can move a neighbour,
+ * so there is no layout shift and the ladder is at its final height from the
+ * first paint.
+ */
+.rung--here .rung-mark {
+  opacity: 0;
+  transform: rotate(45deg) translate3d(0, -14px, 0) scale(0.6);
+}
+.rung--settled .rung-mark {
+  opacity: 1;
+  transform: rotate(45deg) translate3d(0, 0, 0) scale(1);
+  transition:
+    transform 620ms cubic-bezier(0.22, 1.4, 0.36, 1),
+    opacity 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rung--here .rung-mark {
+    opacity: 1;
+    transform: rotate(45deg);
+    transition: none;
+  }
+}
+
+/* ── the House's two columns ─────────────────────────────────────────────── */
+
+.house-body {
+  display: grid;
+  grid-template-columns: 1fr 18rem;
+  gap: 1.6rem;
+  align-items: start;
+}
+.house-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.purse-figure {
+  font-family: var(--font-display), "Cardo", Georgia, serif;
+  font-size: 2.3rem;
+  line-height: 1;
+  color: var(--gold-ink);
+}
+
+@media (max-width: 900px) {
+  .house-body {
+    grid-template-columns: 1fr;
+  }
+}
