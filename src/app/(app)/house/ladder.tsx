@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
 import type { Step } from "@/lib/standing";
 import { shortfall } from "@/lib/standing";
 
@@ -24,21 +20,16 @@ import { shortfall } from "@/lib/standing";
  * Highest at the top, so the list is read downward toward where the House
  * actually stands and everything above it is visibly still to climb.
  *
- * THE ONE ORCHESTRATED MOMENT IN THE APP. The current rung's mark settles into
- * place when this view opens — it arrives from above and comes to rest, once,
- * on mount. Nothing else animates anywhere, and `prefers-reduced-motion` turns
- * even this off: the mark is simply already there.
+ * THE ONE ORCHESTRATED MOMENT IN THE APP is the current rung's mark settling
+ * when this view opens, and it is a CSS animation with no JavaScript behind it.
+ * This was a client component with a `useEffect` that added a class, and the
+ * pre-settled state was `opacity: 0` — so with scripting off, or before
+ * hydration, or if the bundle simply failed, the mark on the rung the House
+ * actually holds was invisible. Caught by rendering the page with its scripts
+ * stripped. A keyframe supplies its own `from`, so the element's resting state
+ * is the correct one and the animation is genuinely an enhancement.
  */
 export function Ladder({ steps }: { steps: Step[] }) {
-  const [settled, setSettled] = useState(false);
-
-  useEffect(() => {
-    // Next frame, so the browser has painted the un-settled position first and
-    // has something to transition from.
-    const id = requestAnimationFrame(() => setSettled(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   return (
     <ol className="ladder">
       {[...steps].reverse().map((s) => {
@@ -50,7 +41,6 @@ export function Ladder({ steps }: { steps: Step[] }) {
               "rung",
               s.held ? "rung--held" : "",
               s.current ? "rung--here" : "",
-              s.current && settled ? "rung--settled" : "",
             ]
               .filter(Boolean)
               .join(" ")}

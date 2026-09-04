@@ -1626,24 +1626,31 @@ input[type="range"]::-moz-range-thumb {
  * view opens. Transform and opacity only — nothing that can move a neighbour,
  * so there is no layout shift and the ladder is at its final height from the
  * first paint.
+ *
+ * A KEYFRAME, NOT A TRANSITION, and no JavaScript behind it. The transition
+ * version needed a class added on mount, which meant the resting state in the
+ * markup had to be the pre-settled one — `opacity: 0` — and with scripting off
+ * the mark on the rung the House actually holds was invisible. An animation
+ * carries its own `from`, so the element rests in the correct state and the
+ * motion is genuinely an enhancement.
  */
-.rung--here .rung-mark {
-  opacity: 0;
-  transform: rotate(45deg) translate3d(0, -14px, 0) scale(0.6);
+@keyframes rung-settle {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) translate3d(0, -14px, 0) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate3d(0, 0, 0) scale(1);
+  }
 }
-.rung--settled .rung-mark {
-  opacity: 1;
-  transform: rotate(45deg) translate3d(0, 0, 0) scale(1);
-  transition:
-    transform 620ms cubic-bezier(0.22, 1.4, 0.36, 1),
-    opacity 300ms ease-out;
+.rung--here .rung-mark {
+  animation: rung-settle 620ms cubic-bezier(0.22, 1.4, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rung--here .rung-mark {
-    opacity: 1;
-    transform: rotate(45deg);
-    transition: none;
+    animation: none;
   }
 }
 
