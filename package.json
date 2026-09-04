@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsc -p tsconfig.test.json && node --test .test-build/lib/",
-    "build:verify": "NEXT_DIST_DIR=.next-verify next build"
+    "build:verify": "NEXT_DIST_DIR=.next-verify next build",
+    "audit:contrast": "node scripts/contrast.mjs"
   },
   "dependencies": {
     "next": "14.2.35",

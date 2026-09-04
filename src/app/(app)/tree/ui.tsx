@@ -46,7 +46,7 @@ export function Awaiting({ edges }: { edges: Edge[] }) {
         Somebody has named you. Nothing renders in the tree — theirs or yours —
         until you agree.
       </p>
-      <ul className="roster" style={{ marginTop: "0.8rem" }}>
+      <ul className="roster spaced-tight">
         {edges.map((e) => (
           <li key={e.id} className="awaiting-row">
             <span>
@@ -79,7 +79,7 @@ export function ClaimForm({
 
   if (household.length === 0) {
     return (
-      <div className="empty" style={{ marginTop: "1rem" }}>
+      <div className="empty spaced">
         <strong>Nobody else is in the House yet.</strong>
         Most of a tree is forebears who were never players, and staff enter
         those. There is nobody here to claim a tie with.

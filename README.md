@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# auren-rp.xyz
 
-## Getting Started
+Next.js 14 (app router), on `127.0.0.1:3200` behind nginx. **The bot owns the
+database and this reads it** — the boundary is enforced by Postgres grants
+(`db/002_site_grants.sql` onward), not by convention in this code.
 
-First, run the development server:
+## The application
+
+Everything behind a login renders inside one shell, `src/app/(app)/layout.tsx`:
+a persistent rail and a scrolling content area. Five views.
+
+| route | what it is |
+| --- | --- |
+| `/hearth` | the landing view once signed in — your character, your House's standing, the counts |
+| `/record` | the character sheet, as a filled-in registry |
+| `/house` | motto, seat, purse, members, and the Ār ladder |
+| `/tree` | parents, married to, children, and the claim-a-tie flow |
+| `/praesidium` | staff only — counts, the roll, petitions |
+
+`/me` and `/admin` are the old names and redirect permanently. They redirect
+from `next.config.mjs` rather than from a page component: a page whose whole
+body is `redirect()` gets prerendered, and the prerendered artefact is a 307
+with **no Location header at all**, which a browser will not follow.
+
+Outside the shell: `/` (landing), `/apply` (the census), `/roster`, `/board`,
+`/aedre`.
+
+## The ladder
+
+`src/lib/ladder.generated.ts` is **generated from `config/standing.yml`** by
+`python tools/gen_site_ladder.py`. Do not hand-edit it —
+`tests/test_site_ladder.py` regenerates it and fails if the result differs.
+
+Where `docs/standing.md` and the config disagree, the config is right. The prose
+says two rungs need generational depth; the data gates four (Hold, Ealdormann,
+Hersir at one completed succession, Hlāford at two).
+
+`src/lib/standing.ts` is the arithmetic on top, mirroring
+`Standing.rank_for` in `core/standing.py`: scan the whole ladder and keep the
+last rung satisfying **both** gates, rather than stopping at the first blocked
+one. The two only agree for every input if this one does the same.
+
+**Ār and coin never convert.** No view may show a combined figure, a rate, or
+one progress bar covering both.
+
+## Commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev             # DO NOT RUN IN THE DEPLOYED DIRECTORY — see below
+npm test                # the ladder arithmetic, under node --test
+npm run audit:contrast  # every surface in the app, against WCAG AA
+npm run build:verify    # a production build that does not touch the live one
+npm run build           # the real build. Takes the site down until it restarts.
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm test` compiles `src/lib/standing.ts` and its test with the TypeScript
+already in `node_modules` and hands the result to node's built-in runner. No
+test framework is installed: one assertion module is not worth a dependency
+tree.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Building on the box that serves the site
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`npm run build` in the deployed directory **takes the live site down until it
+restarts**. `next start` holds the old build manifest in memory while `next
+build` replaces the content-hashed files under `.next`, so the served HTML
+points at a stylesheet that no longer exists and every asset 400s. The page
+still returns 200, so a status-code check will not catch it — compare the
+stylesheet href against `ls .next/static/css/`.
 
-## Learn More
+`npm run build:verify` sets `NEXT_DIST_DIR=.next-verify` and lands somewhere
+else entirely, leaving the served `.next` untouched. Use it for every check that
+is not an actual deploy.
 
-To learn more about Next.js, take a look at the following resources:
+Restarting needs sudo (`auren-site` is a **system** unit, and there is no polkit
+rule). `Restart=on-failure` does not cover a clean SIGTERM, so killing the main
+PID stops the site rather than cycling it:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+kill $(ss -tlnp | grep ':3200' | grep -o 'pid=[0-9]*' | cut -d= -f2)
+sudo systemctl start auren-site
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Never `pkill -f "next start"` — the pattern matches the systemd ExecStart line
+and the shell running it.

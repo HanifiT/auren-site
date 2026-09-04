@@ -200,18 +200,18 @@ export default async function Record() {
         <Ornament mark="lantern" />
         <h2>Entered by the Crown</h2>
       </div>
-      <p className="quiet" style={{ maxWidth: "62ch" }}>
+      <p className="quiet measured">
         Deeds are witnessed, attributed and authored. The Ār they carry moves the
         House, never the person — a member accumulates nothing, which is why
         recruiting is not a strategy.
       </p>
 
       {deeds.length === 0 ? (
-        <div className="empty" style={{ marginTop: "1rem" }}>
+        <div className="empty spaced">
           Nothing entered against this name yet.
         </div>
       ) : (
-        <div className="scroll-x" style={{ marginTop: "1rem" }}>
+        <div className="scroll-x spaced">
           <table>
             <thead>
               <tr>
@@ -244,7 +244,7 @@ export default async function Record() {
       <div className="section-head">
         <h2>Leaving</h2>
       </div>
-      <p className="lede" style={{ marginTop: 0 }}>
+      <p className="lede follows">
         Taking passage off the island sets this record to <em>departed</em> — a
         third status beside living and dead, not a deletion. The line stays on
         the roll with a stroke through it, the name is never freed, and the

@@ -98,7 +98,7 @@ export default async function House() {
           </>
         }
         aside={
-          <span className="tags" style={{ margin: 0 }}>
+          <span className="tags tags--flush">
             <Stamp word={standing.rung.name} tone="gold" />
             {town?.forsaken && <Stamp word="forsaken seat" tone="quiet" />}
           </span>
@@ -107,11 +107,11 @@ export default async function House() {
 
       <div className="house-body">
         <div>
-          <div className="section-head" style={{ marginTop: 0 }}>
+          <div className="section-head section-head--flush">
             <Ornament mark="crozier" />
             <h2>The ladder</h2>
           </div>
-          <p className="quiet" style={{ maxWidth: "62ch", marginBottom: "1rem" }}>
+          <p className="quiet measured ladder-lede">
             Every rung, held or not, and what each unreached one is short by.
             Four of them want a completed succession as well as the Ār — a House
             with the number and no succession does not advance, however long it
@@ -120,7 +120,7 @@ export default async function House() {
 
           <Ladder steps={steps} />
 
-          <p className="quiet" style={{ maxWidth: "62ch", marginTop: "1.2rem" }}>
+          <p className="quiet measured spaced">
             Neither end of the ladder is arithmetic.{" "}
             {eorl && (
               <>
@@ -138,18 +138,6 @@ export default async function House() {
         </div>
 
         <div className="house-side">
-          <section className="plate">
-            <p className="plate-title">Standing</p>
-            <p className="display" style={{ fontSize: "1.9rem" }}>
-              {standing.rung.name}
-            </p>
-            <p className="epithet gloss">{standing.rung.sense}</p>
-            <p className="plate-note">
-              {cynn.ar} Ār · {cynn.successions} completed succession
-              {cynn.successions === 1 ? "" : "s"}
-            </p>
-          </section>
-
           <section className="plate">
             <p className="plate-title">The purse</p>
             <p className="purse-figure">{formatPence(purse)}</p>

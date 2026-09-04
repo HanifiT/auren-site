@@ -15,6 +15,27 @@ const nextConfig = {
    * the deploy is unchanged.
    */
   distDir: process.env.NEXT_DIST_DIR || ".next",
+
+  /**
+   * The two old paths.
+   *
+   * `/me` became `/hearth` and `/admin` became `/praesidium`. Both are in
+   * Discord messages and in people's history, so they redirect rather than 404.
+   *
+   * THIS IS A CONFIG REDIRECT AND NOT A PAGE THAT CALLS `redirect()`, because
+   * the page version silently did not work. A page component whose whole body
+   * is `redirect()` has nothing dynamic in it, so Next prerenders it — and the
+   * prerendered artefact is a 307 with NO Location header at all
+   * (`.next/server/app/me.meta` carries only the status and the cache tags).
+   * A browser receiving that stays where it is and shows nothing. Checked
+   * against a running build; the config form sends a real 308 with a Location.
+   */
+  async redirects() {
+    return [
+      { source: "/me", destination: "/hearth", permanent: true },
+      { source: "/admin", destination: "/praesidium", permanent: true },
+    ];
+  },
   experimental: {
     serverActions: {
       /**

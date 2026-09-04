@@ -77,7 +77,7 @@ export default async function Hearth() {
           <p className="plate-title">Your soul on the roll</p>
           {character ? (
             <>
-              <p className="display" style={{ fontSize: "1.95rem" }}>
+              <p className="plate-name">
                 {character.name}
               </p>
               <p className="epithet">
@@ -121,7 +121,7 @@ export default async function Hearth() {
           <p className="plate-title">Where the House stands</p>
           {cynn && standing ? (
             <>
-              <p className="display" style={{ fontSize: "1.95rem" }}>
+              <p className="plate-name">
                 {standing.rung.name}
               </p>
               <p className="epithet gloss">{standing.rung.sense}</p>
@@ -171,7 +171,7 @@ export default async function Hearth() {
         <Ornament mark="hawthorn" />
         <h2>The rule the counts obey</h2>
       </div>
-      <p className="lede" style={{ marginTop: 0 }}>
+      <p className="lede follows">
         Ār and coin are separate axes and never convert. Ār gates access — who
         will deal with the House at all, whether another will marry into it.
         Coin gates volume, once somebody has agreed to sell. There is no rate
@@ -184,7 +184,7 @@ export default async function Hearth() {
         <div className="section-head">
           <h2>Your place on the roll</h2>
         </div>
-        <p className="lede" style={{ marginTop: 0 }}>
+        <p className="lede follows">
           {slots.living} of {slots.livingAllowed} living.{" "}
           {slots.departed > 0 && `${slots.departed} departed. `}
           {slots.dead > 0 && `${slots.dead} dead. `}

@@ -81,14 +81,13 @@ export default async function Praesidium() {
       {pending.length > 0 && (
         <>
           <div className="section-head">
-            <Ornament mark="toadstool" />
             <h2>Awaiting review — {pending.length}</h2>
           </div>
           <ul className="roster">
             {pending.map((a) => (
               <li key={a.id} className="pending-row">
                 <div>
-                  <p className="roster-main" style={{ fontSize: "1.1rem" }}>
+                  <p className="roster-main roster-main--large">
                     {a.character_name}
                   </p>
                   {a.answers?.concept && (
@@ -99,7 +98,7 @@ export default async function Praesidium() {
               </li>
             ))}
           </ul>
-          <p className="quiet" style={{ marginTop: "0.7rem" }}>
+          <p className="quiet spaced-tight">
             Approve and deny live on the review message, so every decision has an
             author. The site has no UPDATE grant on `application` and could not
             approve one if it tried.
@@ -108,6 +107,7 @@ export default async function Praesidium() {
       )}
 
       <div className="section-head">
+        <Ornament mark="toadstool" />
         <h2>The roll</h2>
       </div>
       {apps.length === 0 ? (
@@ -126,7 +126,7 @@ export default async function Praesidium() {
             <tbody>
               {apps.map((a) => (
                 <tr key={a.id}>
-                  <td style={{ fontFamily: "var(--font-display)" }}>
+                  <td className="display-cell">
                     {a.character_name}
                   </td>
                   <td className="quiet snowflake">{a.applicant_id}</td>
@@ -171,7 +171,7 @@ export default async function Praesidium() {
           <b>Not built.</b> There is no economy schema, and there deliberately
           isn&apos;t one yet — the shape of it has not been decided.
         </p>
-        <p className="quiet" style={{ marginTop: "0.6rem" }}>
+        <p className="quiet spaced-tight">
           When it exists it belongs in the same database, written by the bot and
           read here, like everything above. This panel is a placeholder rather
           than a mock so that nobody mistakes it for something that works. The

@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
 import { edgesFor, householdOf, shapeKin } from "@/lib/tree";
 import { Empty, PageHead } from "@/components/register";
-import { Ornament } from "@/components/ornament";
 import { Awaiting, Branch, ClaimForm } from "./ui";
 
 export const dynamic = "force-dynamic";
@@ -83,8 +82,7 @@ export default async function Tree() {
 
       <Awaiting edges={kin.awaiting} />
 
-      <div className="section-head" style={{ marginTop: "1.6rem" }}>
-        <Ornament mark="hawthorn" />
+      <div className="section-head spaced-wide">
         <h2>Kin</h2>
       </div>
 
@@ -97,7 +95,7 @@ export default async function Tree() {
       <div className="section-head">
         <h2>Claim a tie</h2>
       </div>
-      <p className="lede" style={{ marginTop: 0 }}>
+      <p className="lede follows">
         Claiming somebody as your father is a claim about them, so nothing you
         enter here renders as agreed until they say so. Only parentage and
         marriage are stored — siblings, cousins and grandparents are read off
