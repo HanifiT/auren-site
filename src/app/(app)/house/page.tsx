@@ -89,8 +89,8 @@ export default async function House() {
         lede={
           <>
             Of {cynn.origin_town}
-            {town && town.standing !== "neither"
-              ? `, in the ${town.standing}`
+            {town && town.region !== "neither"
+              ? `, in the ${town.region}`
               : ", of neither side"}
             . Founded {onDay(cynn.founded_at)}.
             {town?.forsaken &&

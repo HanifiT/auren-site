@@ -91,7 +91,8 @@ const CHARACTER_INSERT = `
      hair_colour, hair_style, eyes, complexion, build, height_cm, marks,
      voice, born, tongue)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-          $17, $18, $19)`;
+          $17, $18, $19)
+  RETURNING id::text`;
 
 function characterValues(
   discordId: string,
@@ -166,7 +167,9 @@ export async function foundCynn(params: {
   crestPath: string | null;
   colour: number;
   character: NewCharacter;
-}): Promise<{ ok: true; cynnId: string } | { ok: false; reason: string }> {
+}): Promise<
+  { ok: true; cynnId: string; characterId: string } | { ok: false; reason: string }
+> {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -178,9 +181,14 @@ export async function foundCynn(params: {
     );
     const cynnId = rows[0].id;
     const c = params.character;
+    let characterId: string;
     // The founder admits themselves — there is nobody else to do it, and the
     // consent rule exists to stop people attaching to someone else's name.
-    await client.query(CHARACTER_INSERT, characterValues(params.discordId, cynnId, c));
+    {
+      const inserted = await client.query<{ id: string }>(
+        CHARACTER_INSERT, characterValues(params.discordId, cynnId, c));
+      characterId = inserted.rows[0].id;
+    }
     // Not an UPDATE: `membership`, `admitted_at` and `admitted_by` are outside
     // the site's grants on purpose, because a site that can write membership is
     // a site where one bug admits anyone to any House. `cynn_admit_founder`
@@ -188,7 +196,7 @@ export async function foundCynn(params: {
     // once, only at founding" rule with it.
     await client.query("SELECT cynn_admit_founder($1, $2)", [cynnId, params.discordId]);
     await client.query("COMMIT");
-    return { ok: true, cynnId };
+    return { ok: true, cynnId, characterId };
   } catch (err) {
     await client.query("ROLLBACK");
     const e = err as { code?: string; constraint?: string; message?: string };
@@ -228,12 +236,19 @@ export async function petitionCynn(params: {
   discordId: string;
   cynnId: string;
   character: NewCharacter;
-}): Promise<{ ok: true } | { ok: false; reason: string }> {
+}): Promise<{ ok: true; characterId: string } | { ok: false; reason: string }> {
   const c = params.character;
   try {
-    await pool.query(CHARACTER_INSERT, characterValues(params.discordId, params.cynnId, c));
-    return { ok: true };
+    const { rows } = await pool.query<{ id: string }>(
+      CHARACTER_INSERT, characterValues(params.discordId, params.cynnId, c));
+    return { ok: true, characterId: rows[0].id };
   } catch (err) {
+    const e = err as { code?: string; message?: string };
+    // The three-living cap (db/018) raises with check_violation and a sentence
+    // already fit to show somebody.
+    if (e.message?.includes("living characters")) {
+      return { ok: false, reason: e.message.replace(/^ERROR:\s*/, "") };
+    }
     console.error("petitionCynn failed", err);
     return { ok: false, reason: "The records are unreachable just now." };
   }

@@ -221,7 +221,7 @@ export function ImageCrop({
       {src && natural && (
         <div className="mt-4 flex flex-wrap items-start gap-5">
           <div
-            className="plate"
+            className="crop-frame"
             style={{ width: frame.w, height: frame.h }}
             onPointerDown={down}
             onPointerMove={move}
@@ -242,7 +242,7 @@ export function ImageCrop({
                 transform: `translate(${offset.x}px, ${offset.y}px)`,
               }}
             />
-            <span className="plate-grid" aria-hidden />
+            <span className="crop-grid" aria-hidden />
           </div>
 
           <div className="min-w-[12rem] flex-1">

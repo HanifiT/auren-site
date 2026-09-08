@@ -134,8 +134,8 @@ export default async function Hearth() {
               </p>
               <p className="tags">
                 <span className="tag">{cynn.origin_town}</span>
-                {town && town.standing !== "neither" && (
-                  <span className="tag">{town.standing}</span>
+                {town && town.region !== "neither" && (
+                  <span className="tag">{town.region}</span>
                 )}
                 {town?.forsaken && <Stamp word="reads down everywhere" tone="quiet" />}
               </p>

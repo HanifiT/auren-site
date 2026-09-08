@@ -636,9 +636,16 @@ body {
   .seal { width: 84px; height: 84px; font-size: 2rem; }
 }
 
-/* ── the plate: a picture framed on the sheet ──────────────────────────── */
+/* ── the crop frame: a picture being framed ────────────────────────────────
+ *
+ * Was `.plate`, which the app shell later took for its parchment panels. Both
+ * rules matched, the shell's came second, and the crop frame silently gained
+ * 1.4rem of padding — which moves the image inside the frame the crop is
+ * calculated against. Renamed rather than reordered: two unrelated things
+ * wanting the same word is not something specificity should be asked to settle.
+ */
 
-.plate {
+.crop-frame {
   position: relative;
   overflow: hidden;
   background: #cbbb96;
@@ -651,10 +658,10 @@ body {
   touch-action: none;
   user-select: none;
 }
-.plate:active {
+.crop-frame:active {
   cursor: grabbing;
 }
-.plate img {
+.crop-frame img {
   position: absolute;
   top: 0;
   left: 0;
@@ -662,7 +669,7 @@ body {
   transform-origin: 0 0;
 }
 /* Rule of thirds, the way a frame is scored before a portrait is drawn. */
-.plate-grid {
+.crop-grid {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -672,7 +679,7 @@ body {
     linear-gradient(to bottom, transparent 33.2%, rgba(42, 32, 22, 0.5) 33.2%, rgba(42, 32, 22, 0.5) 33.5%, transparent 33.5%, transparent 66.4%, rgba(42, 32, 22, 0.5) 66.4%, rgba(42, 32, 22, 0.5) 66.7%, transparent 66.7%);
 }
 /* A settled picture is not being framed any more, so drop the handles. */
-.plate--still {
+.crop-frame--still {
   cursor: default;
   touch-action: auto;
   object-fit: cover;
