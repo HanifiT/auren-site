@@ -42,6 +42,10 @@ export type Character = {
   build: string | null;
   height_cm: number | null;
   marks: string | null;
+  /** db/018. The Record printed "no such column" for these three until it did. */
+  voice: string | null;
+  born: string | null;
+  tongue: string | null;
   membership: "pending" | "admitted" | "disowned";
   /**
    * `departed` is a third value, not a delete — see db/016. Someone who takes
@@ -69,6 +73,9 @@ export type NewCharacter = {
   build: string | null;
   heightCm: number | null;
   marks: string | null;
+  voice: string | null;
+  born: string | null;
+  tongue: string | null;
 };
 
 /**
@@ -81,8 +88,10 @@ export type NewCharacter = {
 const CHARACTER_INSERT = `
   INSERT INTO character
     (owner_id, cynn_id, name, age, portrait_path, short, bio, bearing, trade,
-     hair_colour, hair_style, eyes, complexion, build, height_cm, marks)
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`;
+     hair_colour, hair_style, eyes, complexion, build, height_cm, marks,
+     voice, born, tongue)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+          $17, $18, $19)`;
 
 function characterValues(
   discordId: string,
@@ -92,7 +101,7 @@ function characterValues(
   return [
     discordId, cynnId, c.name, c.age, c.portraitPath, c.short, c.bio,
     c.bearing, c.trade, c.hairColour, c.hairStyle, c.eyes, c.complexion,
-    c.build, c.heightCm, c.marks,
+    c.build, c.heightCm, c.marks, c.voice, c.born, c.tongue,
   ];
 }
 
@@ -113,7 +122,8 @@ export async function characterFor(discordId: string): Promise<Character | null>
   const { rows } = await pool.query<Character>(
     `SELECT id::text, cynn_id::text, name, age, portrait_path, short, bio,
             bearing, trade, hair_colour, hair_style, eyes, complexion, build,
-            height_cm, marks, membership, status, at_town, created_at
+            height_cm, marks, voice, born, tongue,
+            membership, status, at_town, created_at
        FROM character WHERE owner_id = $1 AND status = 'living' LIMIT 1`,
     [discordId],
   );

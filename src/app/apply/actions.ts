@@ -15,7 +15,7 @@ export type ApplyState = { error?: string; ok?: boolean };
 
 const LIMITS: Record<string, number> = {
   houseName: 60, motto: 120, name: 100, short: 300, bio: 4000,
-  hairStyle: 80, marks: 200,
+  hairStyle: 80, marks: 200, voice: 120, born: 120, tongue: 120,
 };
 
 /**
@@ -73,6 +73,12 @@ export async function create(
     build: fromList(get("build"), BUILDS),
     heightCm: height,
     marks: get("marks").slice(0, LIMITS.marks) || null,
+
+    // db/018. Free text, like the marks — read here so this action keeps
+    // working while the multi-step census that actually asks for them is built.
+    voice: get("voice").slice(0, LIMITS.voice) || null,
+    born: get("born").slice(0, LIMITS.born) || null,
+    tongue: get("tongue").slice(0, LIMITS.tongue) || null,
   };
 
   if (!character.name) return { error: "A name is required." };

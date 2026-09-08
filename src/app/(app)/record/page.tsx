@@ -29,13 +29,15 @@ export const dynamic = "force-dynamic";
  * reads as a shorter sheet, which is a lie about what the census holds, and on
  * the day a character is entered most of it is empty.
  *
- * FIVE FIELDS HAVE NO COLUMN IN THE REGISTER and are marked as such rather than
- * invented: voice, born, tongue, carried belongings and oaths sworn. The
- * `character` table (db/007, db/011, db/012) holds appearance, trade, prose and
- * whereabouts, and there is no item table and no oath table anywhere in the
- * schema. Filling them with plausible text would be a mock, and a mock on a
- * page whose whole claim is "this is what is written down" is the worst place
- * to put one. They say what they are: a field the register does not yet keep.
+ * VOICE, BORN AND TONGUE ARE REAL COLUMNS NOW (db/018). They printed "no such
+ * column" until the census started collecting them, which it does — so they are
+ * ordinary fields that read "not said" when nobody answered, like every other.
+ *
+ * CARRIED AND OATHS STILL HAVE NO COLUMN and keep saying so in words rather
+ * than as a field. There is no item table and no oath table anywhere in the
+ * schema, and that is deliberate rather than pending. Filling them with
+ * plausible text would be a mock, and a mock on a page whose whole claim is
+ * "this is what is written down" is the worst place to put one.
  *
  * Everything here is a read. Amending a record happens in Discord — the site's
  * Postgres role can write prose and appearance (db/012) but this view is not
@@ -139,12 +141,12 @@ export default async function Record() {
             />
             <Field name="Eyes" value={character.eyes} />
             <Field name="Complexion" value={character.complexion} />
-            <Field name="Voice" absent="no such column" />
+            <Field name="Voice" value={character.voice} />
           </LedgerBlock>
 
           <LedgerBlock head="Of the life">
             <Field name="Trade" value={character.trade} />
-            <Field name="Born" absent="no such column" />
+            <Field name="Born" value={character.born} />
             <Field name="House" value={cynn?.name ?? null} />
             <Field
               name="Seat"
@@ -152,7 +154,7 @@ export default async function Record() {
               under={cynn ? "where the House's line carries" : null}
             />
             <Field name="Came" value={entered} under="entered in the census" />
-            <Field name="Tongue" absent="no such column" />
+            <Field name="Tongue" value={character.tongue} />
             <Field
               name="Last placed"
               value={character.at_town}
