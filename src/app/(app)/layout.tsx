@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import { isStaff } from "@/lib/queries";
+import { LIVING_CAP } from "@/lib/census";
 import { slotsFor, type Slots } from "@/lib/roll";
 import { Fell } from "@/components/fell";
 import { Rail, type RailView } from "@/components/rail";
@@ -51,7 +52,7 @@ export default async function AppShell({
   // back to a page that would have worked.
   let staff = false;
   let slots: Slots = {
-    living: 0, livingAllowed: 1, departed: 0, dead: 0, pending: 0,
+    living: 0, livingAllowed: LIVING_CAP, departed: 0, dead: 0, pending: 0,
   };
   try {
     [staff, slots] = await Promise.all([

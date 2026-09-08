@@ -1,3 +1,4 @@
+import { LIVING_CAP } from "./census";
 import { pool } from "./db";
 
 /**
@@ -12,17 +13,19 @@ import { pool } from "./db";
 /**
  * Character slots for one player.
  *
- * ONE LIVING CHARACTER PER OWNER IS A DATABASE CONSTRAINT, not a setting:
- * `character_one_living_per_owner` in db/007 is a partial unique index over
- * (owner_id) where status = 'living' AND membership = 'admitted'. So the
- * allowance is 1 and it is not ours to invent a different number for.
+ * THREE LIVING CHARACTERS PER OWNER IS A DATABASE CONSTRAINT, not a setting.
+ * It was one, held by the partial unique index `character_one_living_per_owner`
+ * (db/007); a unique index cannot say three, so db/018 replaced it with the
+ * `character_living_cap` trigger. The number lives in `LIVING_CAP` in
+ * lib/census.ts and is imported here rather than written twice.
  *
  * The departed and the dead are counted separately because they stay on the
- * roll and do not take the place. Succession replaces rather than accumulates.
+ * roll and do not take a place. That rule is unchanged — it just applies
+ * against three now. Succession replaces rather than accumulates.
  */
 export type Slots = {
   living: number;
-  /** Always 1. Named rather than inlined so the reason travels with it. */
+  /** The cap. Named rather than inlined so the reason travels with it. */
   livingAllowed: number;
   departed: number;
   dead: number;
@@ -38,7 +41,7 @@ export async function slotsFor(discordId: string): Promise<Slots> {
     [discordId],
   );
   const slots: Slots = {
-    living: 0, livingAllowed: 1, departed: 0, dead: 0, pending: 0,
+    living: 0, livingAllowed: LIVING_CAP, departed: 0, dead: 0, pending: 0,
   };
   for (const r of rows) {
     const n = Number(r.n);

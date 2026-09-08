@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { characterFor, cynnFor } from "@/lib/cynn";
+import { cynnForCharacter, livingCharactersFor, soulFor } from "@/lib/cynn";
 import { epithet, ofNoHouse } from "@/lib/naming";
 import { inchesToWords } from "@/lib/options";
 import { deedsForCharacter } from "@/lib/roll";
@@ -43,19 +43,33 @@ export const dynamic = "force-dynamic";
  * Postgres role can write prose and appearance (db/012) but this view is not
  * the census form, and departure in particular is the bot's to write.
  */
-export default async function Record() {
+export default async function Record({
+  searchParams,
+}: {
+  searchParams: { soul?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session?.discordId) redirect("/");
 
   let character = null, cynn = null;
+  let living: Awaited<ReturnType<typeof livingCharactersFor>> = [];
   let deeds: Awaited<ReturnType<typeof deedsForCharacter>> = [];
   let unavailable = false;
   try {
-    [character, cynn] = await Promise.all([
-      characterFor(session.discordId),
-      cynnFor(session.discordId),
+    // WHICH record. Three living souls per owner are possible (db/018), so the
+    // page needs telling; `soulFor` scopes the id to the owner and falls back
+    // to the first living one, so a stale or edited link lands on something
+    // true rather than on an error or on somebody else's record.
+    [character, living] = await Promise.all([
+      soulFor(session.discordId, searchParams.soul),
+      livingCharactersFor(session.discordId),
     ]);
-    if (character) deeds = await deedsForCharacter(character.id);
+    if (character) {
+      [cynn, deeds] = await Promise.all([
+        cynnForCharacter(character.id),
+        deedsForCharacter(character.id),
+      ]);
+    }
   } catch {
     unavailable = true;
   }
@@ -99,6 +113,21 @@ export default async function Record() {
         }
         aside={<Stamp word={character.membership} />}
       />
+
+      {living.length > 1 && (
+        <nav className="souls" aria-label="Which record">
+          {living.map((c) => (
+            <a
+              key={c.id}
+              href={`/record?soul=${c.id}`}
+              className={`soul${c.id === character.id ? " on" : ""}`}
+              aria-current={c.id === character.id ? "page" : undefined}
+            >
+              {c.name}
+            </a>
+          ))}
+        </nav>
+      )}
 
       <div className="record-top">
         <figure className="portrait">

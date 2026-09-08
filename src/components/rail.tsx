@@ -87,10 +87,14 @@ export function Rail({
 /**
  * Slots, drawn to match the constraint rather than to a number we chose.
  *
- * `character_one_living_per_owner` (db/007) is a partial unique index, so the
- * allowance is exactly one and there is no second pip to draw. The departed and
- * the dead are counted apart from it because they stay written and do not take
- * the place — which is the sentence under the pips, said in words rather than
+ * Three pips, because `character_living_cap` (db/018) caps living, admitted
+ * characters at three per owner. It was one pip and one unique index until a
+ * unique index turned out to be unable to say three. The count comes from
+ * `slots.livingAllowed`, which comes from `LIVING_CAP`, which is the number the
+ * trigger enforces — so the pips cannot disagree with the database.
+ *
+ * The departed and the dead are counted apart because they stay written and do
+ * not take a place — the sentence under the pips, said in words rather than
  * left for a player to infer from a greyed-out circle.
  */
 function SlotStrip({ slots }: { slots: Slots }) {
@@ -110,8 +114,8 @@ function SlotStrip({ slots }: { slots: Slots }) {
         </span>
       </p>
       <p className="slots-note">
-        The roll holds one living soul to a name. Departed and dead stay
-        written, and do not take the place.
+        The roll holds {slots.livingAllowed} living souls to a name. Departed
+        and dead stay written, and do not take a place.
       </p>
       {(slots.departed > 0 || slots.dead > 0 || slots.pending > 0) && (
         <p className="slots-row quiet">

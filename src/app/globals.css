@@ -2001,3 +2001,39 @@ input[type="range"]::-moz-range-thumb {
   font-size: 1.1rem;
   color: var(--gold-ink);
 }
+
+/* ── which of your souls ─────────────────────────────────────────────────────
+ *
+ * Only rendered when there is more than one. Three living per owner became
+ * possible with db/018, and a page that shows a person has to say which person
+ * — so the choice is in the URL and this is the switch for it.
+ */
+.souls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: -1rem 0 1.6rem;
+}
+.soul {
+  padding: 0.3em 0.85em;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.86rem;
+  text-decoration: none;
+  color: var(--bark);
+}
+.soul:hover {
+  border-color: var(--leaf);
+  color: var(--leaf-deep);
+}
+.soul.on {
+  border-color: var(--gold-ink);
+  background: rgba(168, 132, 44, 0.14);
+  color: var(--leaf-deep);
+}
+
+/* The blank line on the Hearth: an invitation, drawn as one. */
+.plate--blank {
+  background: none;
+  border-style: dashed;
+}

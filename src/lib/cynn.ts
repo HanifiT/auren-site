@@ -296,3 +296,57 @@ export async function deedsFor(cynnId: string): Promise<Deed[]> {
   );
   return rows;
 }
+
+/**
+ * Every living character this player bears.
+ *
+ * `characterFor` returns one — it was written when one was the only number
+ * possible (db/007's unique index). Three are possible now (db/018), so the
+ * views that show a person need to know WHICH person, and the answer travels in
+ * the URL as `?soul=`. There is no "currently playing" column and this is
+ * deliberately not inventing one: which record you are reading is a property of
+ * the page you are on, not a fact about the account.
+ */
+export async function livingCharactersFor(discordId: string): Promise<Character[]> {
+  const { rows } = await pool.query<Character>(
+    `SELECT id::text, cynn_id::text, name, age, portrait_path, short, bio,
+            bearing, trade, hair_colour, hair_style, eyes, complexion, build,
+            height_cm, marks, voice, born, tongue,
+            membership, status, at_town, created_at
+       FROM character
+      WHERE owner_id = $1 AND status = 'living'
+      ORDER BY (membership = 'admitted') DESC, created_at`,
+    [discordId],
+  );
+  return rows;
+}
+
+/**
+ * One of them, chosen by id, scoped to the owner.
+ *
+ * Scoped so an id from somebody else's roll returns nothing rather than
+ * somebody else's record. Falls back to the first living character when the id
+ * is absent or does not belong to them, so a stale or edited link lands on
+ * something true instead of an error.
+ */
+export async function soulFor(
+  discordId: string, id: string | undefined,
+): Promise<Character | null> {
+  const living = await livingCharactersFor(discordId);
+  if (living.length === 0) return null;
+  if (!id) return living[0];
+  return living.find((c) => c.id === id) ?? living[0];
+}
+
+/** The House one character belongs to. */
+export async function cynnForCharacter(characterId: string): Promise<Cynn | null> {
+  const { rows } = await pool.query<Cynn>(
+    `SELECT c.id::text, c.name, c.motto, c.crest_path, c.origin_town,
+            c.draw_card_id, c.draw_text, c.draw_hook, c.ar, c.successions,
+            c.colour, c.founded_at
+       FROM cynn c JOIN character ch ON ch.cynn_id = c.id
+      WHERE ch.id = $1 LIMIT 1`,
+    [characterId],
+  );
+  return rows[0] ?? null;
+}

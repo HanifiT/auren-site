@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
-import { characterFor, cynnFor } from "@/lib/cynn";
+import { cynnForCharacter, soulFor } from "@/lib/cynn";
 import { edgesFor, householdOf, shapeKin } from "@/lib/tree";
 import { epithet } from "@/lib/naming";
 import { Empty, PageHead } from "@/components/register";
@@ -29,17 +29,21 @@ export const dynamic = "force-dynamic";
  * confirmation columns and nothing else — it can make a claim and it can agree
  * to one, and it can never manufacture a confirmed edge in a single write.
  */
-export default async function Tree() {
+export default async function Tree({
+  searchParams,
+}: {
+  searchParams: { soul?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session?.discordId) redirect("/");
 
   let me = null, house = null;
   let unavailable = false;
   try {
-    [me, house] = await Promise.all([
-      characterFor(session.discordId),
-      cynnFor(session.discordId),
-    ]);
+    // Kin belong to a person, not to an account, so the tree needs telling
+    // which of up to three living souls it is drawing.
+    me = await soulFor(session.discordId, searchParams.soul);
+    if (me) house = await cynnForCharacter(me.id);
   } catch {
     unavailable = true;
   }
