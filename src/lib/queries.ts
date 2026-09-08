@@ -20,6 +20,16 @@ export type ApplicationRow = {
   status: "pending" | "approved" | "denied" | "withdrawn";
   submitted_at: Date;
   decided_at: Date | null;
+  /**
+   * The applicant's House, for the roll to name them properly.
+   *
+   * `application` has no House column and no foreign key to one — it predates
+   * Houses entirely (db/003 against db/007). So this is the House of the
+   * applicant's LIVING character, which is null while an application is still
+   * pending and the character does not exist yet. That is the honest answer:
+   * a name with no House is what a pending applicant has.
+   */
+  house_name: string | null;
 };
 
 export type TicketRow = {
@@ -30,14 +40,30 @@ export type TicketRow = {
   closed_at: Date | null;
 };
 
+/**
+ * The House of an applicant, by way of their living character.
+ *
+ * A lateral join rather than a plain LEFT JOIN: an owner may have several
+ * characters (up to three living, from db/017) and a plain join would multiply
+ * the application rows by however many they have.
+ */
+const WITH_HOUSE = `
+  LEFT JOIN LATERAL (
+    SELECT cy.name
+      FROM character ch JOIN cynn cy ON cy.id = ch.cynn_id
+     WHERE ch.owner_id = a.applicant_id AND ch.status = 'living'
+     ORDER BY ch.created_at
+     LIMIT 1
+  ) h ON true`;
+
 /** Approved characters, newest first. The public roster. */
 export async function approvedCharacters(limit = 60): Promise<ApplicationRow[]> {
   const { rows } = await pool.query<ApplicationRow>(
-    `SELECT id::text, applicant_id::text, character_name, answers,
-            status, submitted_at, decided_at
-       FROM application
-      WHERE status = 'approved'
-      ORDER BY decided_at DESC NULLS LAST
+    `SELECT a.id::text, a.applicant_id::text, a.character_name, a.answers,
+            a.status, a.submitted_at, a.decided_at, h.name AS house_name
+       FROM application a ${WITH_HOUSE}
+      WHERE a.status = 'approved'
+      ORDER BY a.decided_at DESC NULLS LAST
       LIMIT $1`,
     [limit],
   );
@@ -46,11 +72,11 @@ export async function approvedCharacters(limit = 60): Promise<ApplicationRow[]> 
 
 export async function charactersFor(discordId: string): Promise<ApplicationRow[]> {
   const { rows } = await pool.query<ApplicationRow>(
-    `SELECT id::text, applicant_id::text, character_name, answers,
-            status, submitted_at, decided_at
-       FROM application
-      WHERE applicant_id = $1
-      ORDER BY submitted_at DESC`,
+    `SELECT a.id::text, a.applicant_id::text, a.character_name, a.answers,
+            a.status, a.submitted_at, a.decided_at, h.name AS house_name
+       FROM application a ${WITH_HOUSE}
+      WHERE a.applicant_id = $1
+      ORDER BY a.submitted_at DESC`,
     [discordId],
   );
   return rows;
@@ -82,10 +108,10 @@ export async function isStaff(discordId: string): Promise<boolean> {
 /** Every application, any status. Admin only. */
 export async function allApplications(limit = 200): Promise<ApplicationRow[]> {
   const { rows } = await pool.query<ApplicationRow>(
-    `SELECT id::text, applicant_id::text, character_name, answers,
-            status, submitted_at, decided_at
-       FROM application
-      ORDER BY (status = 'pending') DESC, submitted_at DESC
+    `SELECT a.id::text, a.applicant_id::text, a.character_name, a.answers,
+            a.status, a.submitted_at, a.decided_at, h.name AS house_name
+       FROM application a ${WITH_HOUSE}
+      ORDER BY (a.status = 'pending') DESC, a.submitted_at DESC
       LIMIT $1`,
     [limit],
   );

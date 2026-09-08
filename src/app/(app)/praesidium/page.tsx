@@ -8,6 +8,7 @@ import {
   isStaff,
   recentTickets,
 } from "@/lib/queries";
+import { epithet } from "@/lib/naming";
 import { Empty, PageHead, Stamp, Strip, onDay } from "@/components/register";
 import { Ornament } from "@/components/ornament";
 
@@ -88,7 +89,7 @@ export default async function Praesidium() {
               <li key={a.id} className="pending-row">
                 <div>
                   <p className="roster-main roster-main--large">
-                    {a.character_name}
+                    {epithet(a.character_name, a.house_name)}
                   </p>
                   {a.answers?.concept && (
                     <p className="roster-note">{a.answers.concept}</p>
@@ -127,7 +128,7 @@ export default async function Praesidium() {
               {apps.map((a) => (
                 <tr key={a.id}>
                   <td className="display-cell">
-                    {a.character_name}
+                    {epithet(a.character_name, a.house_name)}
                   </td>
                   <td className="quiet snowflake">{a.applicant_id}</td>
                   <td>

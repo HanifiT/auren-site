@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
 import { edgesFor, householdOf, shapeKin } from "@/lib/tree";
+import { epithet } from "@/lib/naming";
 import { Empty, PageHead } from "@/components/register";
 import { Awaiting, Branch, ClaimForm } from "./ui";
 
@@ -76,7 +77,7 @@ export default async function Tree() {
       <PageHead
         eyebrow="Þe trēow · the tree"
         title={house.name}
-        epithet={`${me.name} · ${household.length} in the House`}
+        epithet={`${epithet(me.name, house.name)} · ${household.length} in the House`}
         lede="A tie is a claim about somebody else, so it waits until they agree. Only agreed ties are the tree; a claim of your own shows here, marked, so it does not look lost."
       />
 

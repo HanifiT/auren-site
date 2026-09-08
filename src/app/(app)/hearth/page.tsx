@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
 import { TOWNS } from "@/lib/options";
 import { formatPence, membersOf, purseOf, slotsFor } from "@/lib/roll";
+import { epithet, ofNoHouse } from "@/lib/naming";
 import { standingFor } from "@/lib/standing";
 import { Empty, PageHead, Stamp, Strip } from "@/components/register";
 import { Ornament } from "@/components/ornament";
@@ -77,11 +78,9 @@ export default async function Hearth() {
           <p className="plate-title">Your soul on the roll</p>
           {character ? (
             <>
-              <p className="plate-name">
-                {character.name}
-              </p>
+              <p className="plate-name">{epithet(character.name, cynn?.name)}</p>
               <p className="epithet">
-                {cynn ? `of ${cynn.name}, of ${cynn.origin_town}` : "of no House"}
+                {cynn ? `seated at ${cynn.origin_town}` : ofNoHouse()}
               </p>
               <p className="plate-note">
                 {[

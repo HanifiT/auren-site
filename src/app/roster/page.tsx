@@ -1,3 +1,4 @@
+import { epithet } from "@/lib/naming";
 import { approvedCharacters } from "@/lib/queries";
 import { Back, Leaf } from "@/components/leaf";
 
@@ -38,7 +39,9 @@ export default async function Roster() {
             className="record p-6 transition-transform hover:-translate-y-0.5"
           >
             <span className="numeral !text-left text-base">{i + 1}</span>
-            <h2 className="display mt-1 text-2xl">{c.character_name}</h2>
+            <h2 className="display mt-1 text-2xl">
+              {epithet(c.character_name, c.house_name)}
+            </h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
               {c.answers?.concept ?? ""}
             </p>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import { characterFor, cynnFor } from "@/lib/cynn";
+import { epithet, ofNoHouse } from "@/lib/naming";
 import { inchesToWords } from "@/lib/options";
 import { deedsForCharacter } from "@/lib/roll";
 import {
@@ -88,9 +89,11 @@ export default async function Record() {
     <>
       <PageHead
         eyebrow={`Roll of souls · entered ${entered ?? "—"}`}
-        title={character.name}
+        title={epithet(character.name, cynn?.name)}
         epithet={
-          cynn ? `of ${cynn.name}, of ${cynn.origin_town}` : "of no House"
+          cynn
+            ? `Seated at ${cynn.origin_town}. The settlement is a field below, not part of the name.`
+            : ofNoHouse()
         }
         aside={<Stamp word={character.membership} />}
       />
@@ -109,7 +112,7 @@ export default async function Record() {
             </div>
           )}
           <figcaption>
-            {cynn ? `${cynn.name} · ${cynn.origin_town}` : "no House"}
+            {cynn ? cynn.name : ofNoHouse()}
           </figcaption>
         </figure>
 
@@ -143,6 +146,11 @@ export default async function Record() {
             <Field name="Trade" value={character.trade} />
             <Field name="Born" absent="no such column" />
             <Field name="House" value={cynn?.name ?? null} />
+            <Field
+              name="Seat"
+              value={cynn?.origin_town ?? null}
+              under={cynn ? "where the House's line carries" : null}
+            />
             <Field name="Came" value={entered} under="entered in the census" />
             <Field name="Tongue" absent="no such column" />
             <Field
