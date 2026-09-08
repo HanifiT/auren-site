@@ -13,6 +13,14 @@ const nextConfig = {
    * So a verification build sets NEXT_DIST_DIR (see `npm run build:verify`)
    * and lands somewhere else entirely. Unset, this is Next's own default and
    * the deploy is unchanged.
+   *
+   * `build:verify` also deletes `.next/types` first. Next adds every distDir it
+   * has ever built into to tsconfig's `include`, so the LIVE build's route
+   * types are typechecked alongside the verification build's — and after a
+   * route is moved they describe files that no longer exist, which fails the
+   * typecheck for a reason that has nothing to do with the change. They are a
+   * typecheck artefact, `next start` never reads them, and the next real build
+   * writes them again.
    */
   distDir: process.env.NEXT_DIST_DIR || ".next",
 

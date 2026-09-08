@@ -95,10 +95,10 @@ export function ClaimForm({
           setError(res.error ?? null);
         })
       }
-      className="claim"
+      className="f-inline spaced"
     >
-      <label className="claim-field">
-        <span className="field-name">Who</span>
+      <label className="f-field">
+        <span className="f-label">Who</span>
         <select name="other" required defaultValue="">
           <option value="" disabled>
             Choose
@@ -110,8 +110,8 @@ export function ClaimForm({
           ))}
         </select>
       </label>
-      <label className="claim-field">
-        <span className="field-name">Is my</span>
+      <label className="f-field">
+        <span className="f-label">Is my</span>
         <select name="relation" required defaultValue="parent">
           <option value="parent">parent</option>
           <option value="child">child</option>
@@ -122,7 +122,7 @@ export function ClaimForm({
         {pending ? "Claiming…" : "Claim"}
       </button>
       {error && (
-        <p className="claim-error" role="alert">
+        <p className="f-error" role="alert">
           {error}
         </p>
       )}
