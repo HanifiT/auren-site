@@ -34,3 +34,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Builds that are not the served one. The monorepo's root .gitignore covered
+# these; this file is the only one that travels when the site is pushed on its
+# own (github.com/HanifiT/auren-site), so it has to carry them too. A
+# verification build left unignored is a whole .next tree one `git add -A`
+# away from being committed.
+/.next-verify/
+/.next-rollback/
+/.next-bad/
+/.test-build/

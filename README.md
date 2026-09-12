@@ -4,6 +4,16 @@ Next.js 14 (app router), on `127.0.0.1:3200` behind nginx. **The bot owns the
 database and this reads it** — the boundary is enforced by Postgres grants
 (`db/002_site_grants.sql` onward), not by convention in this code.
 
+> **Where this comes from.** This repository is the `site/` directory of the
+> Auren bot's repository, published on its own. Several things this README and
+> the code comments refer to live there rather than here: the database schema
+> and grants (`db/*.sql`), `config/standing.yml` and the script that generates
+> `src/lib/ladder.generated.ts` and `src/lib/towns.generated.ts` from it
+> (`tools/gen_site_config.py`), and the Python tests that fail when the two
+> drift (`tests/test_site_ladder.py`). The generated files are committed, so
+> this builds and tests on its own — but edit the YAML there, not the generated
+> TypeScript here.
+
 ## The application
 
 Everything behind a login renders inside one shell, `src/app/(app)/layout.tsx`:
